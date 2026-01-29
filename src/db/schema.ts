@@ -96,6 +96,10 @@ export const tasks = pgTable("tasks", {
     riskLevel: riskLevelEnum("risk_level").default("low"),
     aiBreakdown: jsonb("ai_breakdown"), // JSON hasil breakdown subtasks dari Gemini
     
+    // AI Quality & Analytics
+    qualityScore: integer("quality_score"), // 0-100 score from AI
+    qualityAnalysis: text("quality_analysis"), // Detailed feedback from AI regarding the quality work
+
     createdAt: timestamp("created_at").defaultNow(),
     updatedAt: timestamp("updated_at").defaultNow(),
 });

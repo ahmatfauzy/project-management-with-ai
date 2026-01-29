@@ -15,6 +15,13 @@
       "when": 1769630187305,
       "tag": "0001_keen_gauntlet",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1769678451211,
+      "tag": "0002_violet_cerebro",
+      "breakpoints": true
     }
   ]
 }

@@ -101,3 +101,41 @@ export async function analyzeBatchTasksRisk(
         return [];
     }
 }
+
+export async function analyzeTaskQuality(
+    taskTitle: string,
+    taskDescription: string,
+    evidenceDescription: string,
+    isLate: boolean,
+    daysLate: number
+): Promise<{ score: number; analysis: string }> {
+    const prompt = `
+        You are a strict QA Manager. Evaluate the quality of this completed task.
+        
+        TASK: "${taskTitle}"
+        REQUIREMENTS: "${taskDescription}"
+        EVIDENCE SUBMITTED: "${evidenceDescription}"
+        TIMELINESS: ${isLate ? `Late by ${daysLate} days` : "On Time"}
+
+        Rate the quality on a scale of 0-100 based on:
+        1. Alignment with requirements (Did they do what was asked?).
+        2. Clarity of evidence provided.
+        3. Timeliness (Penalize heavily if late).
+
+        Return JSON ONLY:
+        {
+            "score": 85,
+            "analysis": "Good work, met all requirements. Evidence is clear. Perfect timing."
+        }
+    `;
+
+    try {
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text().replace(/```json|```/g, "").trim();
+        return JSON.parse(text);
+    } catch (error) {
+        console.error("Quality Analysis Failed", error);
+        return { score: 0, analysis: "AI Analysis Failed" };
+    }
+}

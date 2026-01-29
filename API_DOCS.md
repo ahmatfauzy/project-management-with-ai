@@ -186,6 +186,28 @@ Untuk pengujian API di Postman setelah login di browser:
 }
 ```
 
+#### Analisis Kualitas Pekerjaan (AI)
+- **URL**: `/ai/analyze-quality`
+- **Method**: `POST`
+- **Akses**: PM/HR Only.
+- **Kegunaan**: Menilai kualitas submission task berdasarkan deskripsi, bukti file, dan ketepatan waktu.
+- **Body**:
+```json
+{
+    "taskId": "uuid-task"
+}
+```
+- **Response**:
+```json
+{
+    "success": true,
+    "data": {
+        "score": 85,
+        "analysis": "Pekerjaan sesuai spesifikasi. Bukti gambar jelas. Tepat waktu."
+    }
+}
+```
+
 ---
 
 ### 6. Update Tugas (Edit)
