@@ -24,6 +24,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { authClient } from "@/lib/auth-client";
+import { redirect } from "next/navigation";
 
 export function NavUser({
   user,
@@ -37,6 +39,11 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
 
+  const handleLogout = async () => {
+    await authClient.signOut();
+    redirect("/auth/login");
+  };
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -46,7 +53,7 @@ export function NavUser({
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <Avatar className="h-8 w-8 rounded-lg grayscale">
+              <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
@@ -54,7 +61,11 @@ export function NavUser({
                 <span className="truncate font-medium">{user.name}</span>
                 <span className="truncate text-xs">{user.email}</span>
                 <span className="truncate text-xs text-muted-foreground font-mono">
-                  {user.role}
+                  {user.role === "hr"
+                    ? "Human Resource"
+                    : user.role === "pm"
+                      ? "Project Manager"
+                      : "Employee"}
                 </span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
@@ -76,7 +87,11 @@ export function NavUser({
                   <span className="truncate font-medium">{user.name}</span>
                   <span className="truncate text-xs">{user.email}</span>
                   <span className="truncate text-xs text-muted-foreground font-mono">
-                    {user.role}
+                    {user.role === "hr"
+                      ? "Human Resource"
+                      : user.role === "pm"
+                        ? "Project Manager"
+                        : "Employee"}
                   </span>
                 </div>
               </div>
@@ -97,7 +112,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>

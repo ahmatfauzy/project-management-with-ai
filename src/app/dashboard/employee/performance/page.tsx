@@ -1,3 +1,5 @@
+import { ChartBarLabel } from "@/components/chart-bar-label";
+import { ChartRadarSimple } from "@/components/chart-radar";
 import {
   Card,
   CardContent,
@@ -30,22 +32,55 @@ export default function PerformancePage() {
             </p>
           </CardContent>
         </Card>
-        {/* Placeholder for more cards */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Tasks Completed
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">145</div>
+            <p className="text-xs text-muted-foreground">+12 from last month</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">
+              Feedback Received
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">24</div>
+            <p className="text-xs text-muted-foreground">4 new reviews</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Goals Met</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">85%</div>
+            <p className="text-xs text-muted-foreground">On track for Q1</p>
+          </CardContent>
+        </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>History Score</CardTitle>
-          <CardDescription>
-            History of your completed tasks and their quality ratings.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[200px] flex items-center justify-center text-muted-foreground border-2 border-dashed rounded-lg">
-            Performance Chart / Table Placeholder
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid gap-4 lg:grid-cols-7">
+        <Card className="lg:col-span-4">
+          <CardHeader>
+            <CardTitle>History Score</CardTitle>
+            <CardDescription>
+              History of your completed tasks and their quality ratings.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartBarLabel />
+          </CardContent>
+        </Card>
+        <div className="lg:col-span-3">
+          <ChartRadarSimple />
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,6 +1,9 @@
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CircleSlash, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { redirect } from "next/navigation";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import Link from "next/link";
 
 import { AppSidebar } from "@/components/dashboard/app-sidebar";
@@ -12,23 +15,12 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // TEMPORARY: Commented out for development per user request
-  // const session = await auth.api.getSession({ headers: await headers() });
+  const session = await auth.api.getSession({ headers: await headers() });
 
-  // if (!session) {
-  //   redirect("/auth/login");
-  // }
+  if (!session) {
+    redirect("/auth/login");
+  }
 
-  // MOCK DATA FOR DEVELOPMENT (Change role to 'hr', 'pm', 'employee' to test)
-  const session = {
-    user: {
-      name: "Dev User",
-      role: "employee",
-      status: "active",
-      email: "dev@local",
-      image: "",
-    },
-  };
 
   const status = session.user.status;
 
@@ -72,6 +64,21 @@ export default async function DashboardLayout({
     );
   }
 
+  const userData = session?.user
+    ? {
+        name: session.user.name,
+        email: session.user.email,
+        avatar: session.user.image || "",
+        role: session.user.role ,
+      }
+    : {
+        name: "User",
+        email: "user@example.com",
+        avatar: "",
+        role: "employee",
+      };
+
+  
   return (
     <SidebarProvider
       style={
@@ -81,7 +88,7 @@ export default async function DashboardLayout({
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant="inset" />
+      <AppSidebar variant="inset" user={userData} />
       <SidebarInset>
         <SiteHeader />
         <div className="flex flex-1 flex-col">
@@ -89,19 +96,5 @@ export default async function DashboardLayout({
         </div>
       </SidebarInset>
     </SidebarProvider>
-
-    // PREVIOUS LAYOUT (PRESERVED FOR REFERENCE)
-    // <div className="min-h-screen">
-    //   {/* Sidebar/Navbar could go here */}
-    //   {/* <header className="border-b p-4 flex justify-between items-center bg-card">
-    //     <div className="font-bold">Quavity Dashboard</div>
-    //     <div className="flex items-center gap-4">
-    //       <span className="text-sm text-muted-foreground">
-    //         {session.user.name} ({session.user.role})
-    //       </span>
-    //     </div>
-    //   </header> */}
-    //   <main className="p-8">{children}</main>
-    // </div>
   );
 }

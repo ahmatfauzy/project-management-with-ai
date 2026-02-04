@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 import { IconInnerShadowTop } from "@tabler/icons-react";
 
 import { NavMain } from "@/components/nav-main";
@@ -16,22 +17,34 @@ import {
 } from "@/components/ui/sidebar";
 import { dashboardConfig } from "@/config/dashboard";
 
-// Mock user data - in a real app this would come from props or a store
-const userMock = {
-  name: "Dev User",
-  email: "dev@quavity.com",
-  avatar: "/avatars/shadcn.jpg",
-  role: "Employee",
-};
-
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   role?: "employee" | "pm" | "hr";
 }
 
-export function AppSidebar({ role = "employee", ...props }: AppSidebarProps) {
+export function AppSidebar({
+  role = "employee",
+  user,
+  ...props
+}: AppSidebarProps & {
+  user: {
+    name: string;
+    email: string;
+    avatar: string;
+    role?: string;
+  };
+}) {
+  const pathname = usePathname();
+
+  // Auto-detect role based on URL for development seamlessness
+  let currentRole = role;
+  if (pathname?.startsWith("/dashboard/pm")) {
+    currentRole = "pm";
+  } else if (pathname?.startsWith("/dashboard/hr")) {
+    currentRole = "hr";
+  }
+
   // Select navigation items based on role
-  // Default to employee if role not found or any type mismatch
-  const navItems = dashboardConfig[role] || dashboardConfig.employee;
+  const navItems = dashboardConfig[currentRole] || dashboardConfig.employee;
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -56,7 +69,7 @@ export function AppSidebar({ role = "employee", ...props }: AppSidebarProps) {
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={userMock} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   );

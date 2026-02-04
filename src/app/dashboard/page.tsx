@@ -1,9 +1,25 @@
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-// Since we have moved the dashboard logic to specific roles (e.g., /dashboard/employee),
-// this main page can redirect to the appropriate dashboard based on user role.
-// For now, we default to employee dashboard.
+export default async function DashboardPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
 
-export default function Page() {
-  redirect("/dashboard/employee");
+  if (!session) {
+    redirect("/auth/login");
+  }
+
+  if (session.user.role === "hr") {
+    redirect("/dashboard/hr");
+  }
+
+  if (session.user.role === "pm") {
+    redirect("/dashboard/pm");
+  }
+
+  if (session.user.role === "employee") {
+    redirect("/dashboard/employee");
+  }
+
+  return <div>Dashboard</div>;
 }

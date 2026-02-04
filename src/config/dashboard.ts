@@ -57,13 +57,13 @@ export const dashboardConfig = {
       icon: IconDashboard,
     },
     {
-      title: "Talent Intel",
-      url: "/dashboard/hr/talent",
+      title: "Talent Intelligence",
+      url: "/dashboard/hr/talent-intelligence",
       icon: IconChartBar,
     },
     {
-      title: "User Admin",
-      url: "/dashboard/hr/users",
+      title: "Manage Users",
+      url: "/dashboard/hr/users-management",
       icon: IconUsers,
     },
   ],

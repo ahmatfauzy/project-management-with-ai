@@ -1,4 +1,3 @@
-
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 if (!process.env.GEMINI_API_KEY) {
@@ -14,7 +13,10 @@ export interface TaskBreakdown {
   estimatedTotalHours: number;
 }
 
-export async function breakdownTaskDescription(description: string, title: string): Promise<TaskBreakdown> {
+export async function breakdownTaskDescription(
+  description: string,
+  title: string,
+): Promise<TaskBreakdown> {
   const prompt = `
     You are an expert Project Manager AI. I will provide a task title and description.
     Your job is to:
@@ -36,22 +38,28 @@ export async function breakdownTaskDescription(description: string, title: strin
   try {
     const result = await model.generateContent(prompt);
     const response = await result.response;
-    const text = response.text().replace(/```json|```/g, "").trim();
+    const text = response
+      .text()
+      .replace(/```json|```/g, "")
+      .trim();
     return JSON.parse(text);
   } catch (error) {
     console.error("Gemini Breakdown Error:", error);
     return {
-        subtasks: [],
-        riskAnalysis: "AI breakdown failed. Please review manually.",
-        estimatedTotalHours: 0
+      subtasks: [],
+      riskAnalysis: "AI breakdown failed. Please review manually.",
+      estimatedTotalHours: 0,
     };
   }
 }
 
 export async function analyzeWorkloadRisk(
-    tasks: { title: string; dueDate: Date | null; status: string }[]
-): Promise<{ riskLevel: "low" | "medium" | "high" | "critical"; insight: string }> {
-    const prompt = `
+  tasks: { title: string; dueDate: Date | null; status: string }[],
+): Promise<{
+  riskLevel: "low" | "medium" | "high" | "critical";
+  insight: string;
+}> {
+  const prompt = `
         Analyze the following user workload and determine the risk level (low, medium, high, critical) of missing deadlines or burnout.
         Tasks: ${JSON.stringify(tasks)}
 
@@ -61,24 +69,27 @@ export async function analyzeWorkloadRisk(
             "insight": "Explain why..."
         }
     `;
-    
-     try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text().replace(/```json|```/g, "").trim();
-        return JSON.parse(text);
-    } catch (error) {
-        return { riskLevel: "low", insight: "AI analysis unavailable" };
-    }
+
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response
+      .text()
+      .replace(/```json|```/g, "")
+      .trim();
+    return JSON.parse(text);
+  } catch (error) {
+    return { riskLevel: "low", insight: "AI analysis unavailable" };
+  }
 }
 
 export async function analyzeBatchTasksRisk(
-    tasksData: { id: string; title: string; dueDate: string; status: string }[]
+  tasksData: { id: string; title: string; dueDate: string; status: string }[],
 ): Promise<{ taskId: string; riskLevel: string; reason: string }[]> {
-    if (tasksData.length === 0) return [];
+  if (tasksData.length === 0) return [];
 
-    const prompt = `
-        You are a project risk analyzer. Review these tasks (Today is ${new Date().toISOString().split('T')[0]}):
+  const prompt = `
+        You are a project risk analyzer. Review these tasks (Today is ${new Date().toISOString().split("T")[0]}):
         ${JSON.stringify(tasksData)}
 
         Identify tasks that are at "high" or "critical" risk of missing deadlines. 
@@ -91,25 +102,28 @@ export async function analyzeBatchTasksRisk(
         If no risky tasks, return [].
     `;
 
-    try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text().replace(/```json|```/g, "").trim();
-        return JSON.parse(text);
-    } catch (error) {
-        console.error("Batch Risk Analysis Failed", error);
-        return [];
-    }
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response
+      .text()
+      .replace(/```json|```/g, "")
+      .trim();
+    return JSON.parse(text);
+  } catch (error) {
+    console.error("Batch Risk Analysis Failed", error);
+    return [];
+  }
 }
 
 export async function analyzeTaskQuality(
-    taskTitle: string,
-    taskDescription: string,
-    evidenceDescription: string,
-    isLate: boolean,
-    daysLate: number
+  taskTitle: string,
+  taskDescription: string,
+  evidenceDescription: string,
+  isLate: boolean,
+  daysLate: number,
 ): Promise<{ score: number; analysis: string }> {
-    const prompt = `
+  const prompt = `
         You are a strict QA Manager. Evaluate the quality of this completed task.
         
         TASK: "${taskTitle}"
@@ -129,13 +143,16 @@ export async function analyzeTaskQuality(
         }
     `;
 
-    try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text().replace(/```json|```/g, "").trim();
-        return JSON.parse(text);
-    } catch (error) {
-        console.error("Quality Analysis Failed", error);
-        return { score: 0, analysis: "AI Analysis Failed" };
-    }
+  try {
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response
+      .text()
+      .replace(/```json|```/g, "")
+      .trim();
+    return JSON.parse(text);
+  } catch (error) {
+    console.error("Quality Analysis Failed", error);
+    return { score: 0, analysis: "AI Analysis Failed" };
+  }
 }
