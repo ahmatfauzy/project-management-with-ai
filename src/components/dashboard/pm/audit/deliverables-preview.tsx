@@ -8,14 +8,14 @@ export function DeliverablesPreview({
 }: {
   evidences: {
     id: string;
-    name: string;
-    path: string;
     fileType: string;
     description: string;
     submittedAt: string;
     createdAt: string;
     fileUrl: string;
     updatedAt: string;
+    name?: string;
+    path?: string;
   }[];
 }) {
   if (!evidences || evidences.length === 0) {

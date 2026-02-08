@@ -15,12 +15,17 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  let session;
+  try {
+    session = await auth.api.getSession({ headers: await headers() });
+  } catch (error) {
+    console.error("Session Check Failed", error);
+    redirect("/auth/login");
+  }
 
   if (!session) {
     redirect("/auth/login");
   }
-
 
   const status = session.user.status;
 
@@ -69,7 +74,7 @@ export default async function DashboardLayout({
         name: session.user.name,
         email: session.user.email,
         avatar: session.user.image || "",
-        role: session.user.role ,
+        role: session.user.role,
       }
     : {
         name: "User",
@@ -78,7 +83,6 @@ export default async function DashboardLayout({
         role: "employee",
       };
 
-  
   return (
     <SidebarProvider
       style={

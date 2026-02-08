@@ -1,7 +1,7 @@
 "use client";
 
 import { EmployeeKanban } from "@/components/dashboard/employee-kanban";
-import { SectionCards } from "@/components/section-cards";
+import { SectionCards } from "@/components/section-cards-employee";
 import { ChartAreaInteractive } from "@/components/dashboard/chart-area-interactive";
 import { UpcomingDeadlines } from "@/components/upcoming-deadlines";
 
@@ -10,7 +10,7 @@ export default function EmployeeDashboardPage() {
     <div className="flex flex-col gap-6 h-full">
       <div className="flex flex-col gap-6">
         <SectionCards />
-        
+
         <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-7">
           <div className="col-span-4 lg:col-span-5">
             <ChartAreaInteractive />

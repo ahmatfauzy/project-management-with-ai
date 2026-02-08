@@ -206,6 +206,32 @@ export default function AuditPage() {
                         <Eye className="mr-2 h-4 w-4" />
                         Review
                       </Link>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="ml-2 h-9 w-9 p-0"
+                        onClick={async () => {
+                          toast.loading("Re-analyzing...");
+                          try {
+                            const res = await fetch("/api/ai/analyze-quality", {
+                              method: "POST",
+                              body: JSON.stringify({ taskId: task.id }),
+                            });
+                            if (res.ok) {
+                              toast.success("Analysis updated");
+                              window.location.reload();
+                            } else {
+                              toast.error("Analysis failed");
+                            }
+                          } catch (e) {
+                            toast.error("Error");
+                          } finally {
+                            toast.dismiss();
+                          }
+                        }}
+                      >
+                        <Bot className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))

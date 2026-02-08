@@ -30,10 +30,15 @@ type Task = {
   submittedAt: string;
   evidences: {
     id: string;
-    name: string;
-    path: string;
+    fileUrl: string;
+    fileType: string;
+    description: string;
+    submittedAt: string;
     createdAt: string;
     updatedAt: string;
+    // Legacy fields if needed, but safer to use optional or remove
+    name?: string;
+    path?: string;
   }[];
 };
 export default function AuditDetailPage() {

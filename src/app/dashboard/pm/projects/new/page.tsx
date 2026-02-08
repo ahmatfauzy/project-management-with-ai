@@ -488,6 +488,12 @@ export default function NewProjectPage() {
                           <SelectItem value="unassigned">Unassigned</SelectItem>
                           {users.map((u) => (
                             <SelectItem key={u.id} value={u.id}>
+                              <Image
+                                src={u.image}
+                                alt={u.name}
+                                width={24}
+                                height={24}
+                              />
                               {u.name}
                             </SelectItem>
                           ))}

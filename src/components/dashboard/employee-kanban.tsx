@@ -23,6 +23,17 @@ import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import type { Task as DbTask } from "@/types/common";
 
 // Tipe data Internal Kanban (Visual)
 type Task = {
@@ -36,6 +47,9 @@ type Task = {
   endDate: string;
   dueDate: string;
   description?: string;
+  projectId?: string;
+  qualityScore?: number;
+  qualityAnalysis?: string;
 };
 
 const COLUMNS = [
@@ -222,6 +236,8 @@ export function EmployeeKanban() {
             endDate: "", // Not available in task schema usually
             reviewer: "Manager", // Static for now, or fetch creator name
             description: t.description,
+            qualityScore: t.qualityScore,
+            qualityAnalysis: t.qualityAnalysis,
           }));
           setTasks(mappedTasks);
         }
@@ -236,9 +252,26 @@ export function EmployeeKanban() {
 
   const [description, setDescription] = useState("");
 
-  const handleTaskClick = (task: Task) => {
+  const handleTaskClick = async (task: Task) => {
     setSelectedTask(task);
     setDescription(""); // Reset description
+
+    try {
+      // Fetch detailed task info including subtasks
+      const res = await fetch(`/api/tasks/${task.id}`);
+      if (res.ok) {
+        const detail = await res.json();
+        setSelectedTask((prev) => ({
+          ...prev!,
+          description: detail.description || prev?.description,
+          status: mapDbStatusToKanban(detail.status),
+          qualityScore: detail.qualityScore,
+          qualityAnalysis: detail.qualityAnalysis,
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch task details", error);
+    }
   };
 
   const handleUploadComplete = (result: unknown) => {
@@ -279,13 +312,79 @@ export function EmployeeKanban() {
 
   return (
     <div className="h-full w-full min-h-[500px]">
-      <KanbanBoardProvider>
-        <KanbanContent
-          tasks={tasks}
-          setTasks={setTasks}
-          onTaskClick={handleTaskClick}
-        />
-      </KanbanBoardProvider>
+      <Tabs defaultValue="kanban" className="h-full w-full">
+        <div className="flex items-center justify-between mb-4">
+          <TabsList>
+            <TabsTrigger value="kanban">Kanban Board</TabsTrigger>
+            <TabsTrigger value="table">Table View</TabsTrigger>
+          </TabsList>
+        </div>
+
+        <TabsContent value="kanban" className="h-[calc(100%-60px)]">
+          <KanbanBoardProvider>
+            <KanbanContent
+              tasks={tasks}
+              setTasks={setTasks}
+              onTaskClick={handleTaskClick}
+            />
+          </KanbanBoardProvider>
+        </TabsContent>
+
+        <TabsContent value="table" className="h-[calc(100%-60px)]">
+          <div className="rounded-md border h-full overflow-hidden bg-background">
+            <ScrollArea className="h-full">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Task Name</TableHead>
+                    <TableHead>Priority</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Deadline</TableHead>
+                    <TableHead>Subtasks (AI)</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tasks.map((task) => (
+                    <TableRow
+                      key={task.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => handleTaskClick(task)}
+                    >
+                      <TableCell className="font-medium">
+                        {task.header}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            task.type === "high" || task.type === "critical"
+                              ? "destructive"
+                              : "secondary"
+                          }
+                        >
+                          {task.type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{task.status}</Badge>
+                      </TableCell>
+                      <TableCell>{task.dueDate}</TableCell>
+                      <TableCell>
+                        <span className="text-xs text-muted-foreground">-</span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="sm">
+                          Details
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </ScrollArea>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <Modal
         isOpen={!!selectedTask}
@@ -305,7 +404,33 @@ export function EmployeeKanban() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          {/* Quality Score Display (if available) */}
+          {selectedTask?.qualityScore !== undefined &&
+            selectedTask.qualityScore !== null && (
+              <div className="space-y-3 pt-4 border-t">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-medium">Quality Score</h4>
+                  <div
+                    className={`text-xl font-bold ${
+                      selectedTask.qualityScore >= 80
+                        ? "text-green-500"
+                        : selectedTask.qualityScore >= 50
+                          ? "text-yellow-500"
+                          : "text-red-500"
+                    }`}
+                  >
+                    {selectedTask.qualityScore}/100
+                  </div>
+                </div>
+                {selectedTask.qualityAnalysis && (
+                  <p className="text-sm text-muted-foreground">
+                    {selectedTask.qualityAnalysis}
+                  </p>
+                )}
+              </div>
+            )}
+
+          <div className="grid grid-cols-2 gap-4 text-sm mt-4">
             <div>
               <span className="text-muted-foreground">Status:</span>{" "}
               <Badge className="capitalize">{selectedTask?.status}</Badge>

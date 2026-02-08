@@ -127,25 +127,52 @@ const chartConfig = {
   visitors: {
     label: "Visitors",
   },
-  desktop: {
+  completed: {
     label: "Completed",
     color: "var(--chart-1)",
   },
-  mobile: {
+  pending: {
     label: "Pending",
     color: "var(--chart-2)",
   },
 } satisfies ChartConfig;
 
+interface ChartDataPoint {
+  date: string;
+  completed: number;
+  pending: number;
+}
+
 export function ChartAreaInteractive() {
   const isMobile = useIsMobile();
   const [timeRange, setTimeRange] = React.useState("90d");
+  const [chartData, setChartData] = React.useState<ChartDataPoint[]>([]);
+  const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
     if (isMobile) {
       setTimeRange("7d");
     }
   }, [isMobile]);
+
+  React.useEffect(() => {
+    fetchChartData();
+  }, []);
+
+  const fetchChartData = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/dashboard/employee/chart");
+      if (res.ok) {
+        const data = await res.json();
+        setChartData(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch chart data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredData = chartData.filter((item) => {
     const date = new Date(item.date);
@@ -212,27 +239,27 @@ export function ChartAreaInteractive() {
         >
           <AreaChart data={filteredData}>
             <defs>
-              <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillCompleted" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-desktop)"
+                  stopColor="var(--color-completed)"
                   stopOpacity={1.0}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-desktop)"
+                  stopColor="var(--color-completed)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
-              <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillPending" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-mobile)"
+                  stopColor="var(--color-pending)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-mobile)"
+                  stopColor="var(--color-pending)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
@@ -267,17 +294,17 @@ export function ChartAreaInteractive() {
               }
             />
             <Area
-              dataKey="mobile"
+              dataKey="pending"
               type="natural"
-              fill="url(#fillMobile)"
-              stroke="var(--color-mobile)"
+              fill="url(#fillPending)"
+              stroke="var(--color-pending)"
               stackId="a"
             />
             <Area
-              dataKey="desktop"
+              dataKey="completed"
               type="natural"
-              fill="url(#fillDesktop)"
-              stroke="var(--color-desktop)"
+              fill="url(#fillCompleted)"
+              stroke="var(--color-completed)"
               stackId="a"
             />
           </AreaChart>

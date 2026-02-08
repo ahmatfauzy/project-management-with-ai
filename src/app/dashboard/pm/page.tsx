@@ -2,8 +2,8 @@
 
 import { ProjectStatusChart } from "@/components/dashboard/pm/project-status-chart";
 import { TeamWorkloadChart } from "@/components/dashboard/pm/team-workload-chart";
-import { SectionCards } from "@/components/section-cards"; // We can reuse or create specific ones
 import { useEffect, useState } from "react";
+import type { Project } from "@/types/common";
 
 export default function PMDashboardPage() {
   const [stats, setStats] = useState({
@@ -12,9 +12,16 @@ export default function PMDashboardPage() {
     teamEfficiency: 0,
     pendingReview: 0,
   });
-  const [workloadData, setWorkloadData] = useState<any[]>([]);
-  const [projectStatusData, setProjectStatusData] = useState<any>(null);
-  const [recentProjects, setRecentProjects] = useState<any[]>([]);
+  const [workloadData, setWorkloadData] = useState<
+    Array<{ name: string; tasks: number }>
+  >([]);
+  const [projectStatusData, setProjectStatusData] = useState<{
+    active: number;
+    completed: number;
+    planning: number;
+    on_hold: number;
+  } | null>(null);
+  const [recentProjects, setRecentProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -35,11 +42,11 @@ export default function PMDashboardPage() {
         if (projectsRes.ok) {
           const data = await projectsRes.json();
           // Sort by start date descending and take top 5
-          const sorted = data
+          const sorted = (data as Project[])
             .sort(
-              (a: string, b: string) =>
-                new Date(b.createdAt || b.startDate).getTime() -
-                new Date(a.createdAt || a.startDate).getTime(),
+              (a: Project, b: Project) =>
+                new Date(b.createdAt || b.startDate || 0).getTime() -
+                new Date(a.createdAt || a.startDate || 0).getTime(),
             )
             .slice(0, 5);
           setRecentProjects(sorted);
@@ -78,18 +85,7 @@ export default function PMDashboardPage() {
           <p className="text-xs text-muted-foreground">Tasks in progress</p>
         </div>
 
-        {/* Card 3: Team Efficiency */}
-        {/* <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
-          <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="tracking-tight text-sm font-medium">
-              Team Efficiency
-            </h3>
-          </div>
-          <div className="text-2xl font-bold">{stats.teamEfficiency}%</div>
-          <p className="text-xs text-muted-foreground">Task completion rate</p>
-        </div> */}
-
-        {/* Card 4: Pending Review */}
+        {/* Card 3: Pending Review */}
         <div className="rounded-xl border bg-card text-card-foreground shadow-sm p-6">
           <div className="flex flex-row items-center justify-between space-y-0 pb-2">
             <h3 className="tracking-tight text-sm font-medium">
@@ -151,7 +147,7 @@ export default function PMDashboardPage() {
                     </td>
                   </tr>
                 ) : (
-                  recentProjects.map((project: any) => (
+                  recentProjects.map((project: Project) => (
                     <tr
                       key={project.id}
                       className="border-b transition-colors hover:bg-muted/50"

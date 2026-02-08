@@ -37,6 +37,7 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { Calendar } from "@/components/ui/calendar";
 import { format, subYears, addYears } from "date-fns";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 type TaskItem = {
   id: string | number;
@@ -60,6 +61,7 @@ export default function EditProjectPage() {
 
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -87,6 +89,10 @@ export default function EditProjectPage() {
         setDescription(data.description || "");
         if (data.startDate) setStartDate(new Date(data.startDate));
         if (data.dueDate) setEndDate(new Date(data.dueDate));
+
+        if (data.team && Array.isArray(data.team)) {
+          setSelectedMembers(data.team.map((m: any) => m.id));
+        }
 
         if (data.tasks && Array.isArray(data.tasks)) {
           setTasks(
@@ -153,6 +159,7 @@ export default function EditProjectPage() {
           startDate,
           endDate,
           tasks,
+          memberIds: selectedMembers,
         }),
       });
 
@@ -293,6 +300,60 @@ export default function EditProjectPage() {
           </Card>
 
           <Card>
+            <CardHeader>
+              <CardTitle>Team Members</CardTitle>
+              <CardDescription>
+                Manage who has access to this project.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {users.map((user) => (
+                  <div
+                    key={user.id}
+                    className={cn(
+                      "flex items-center space-x-3 border p-4 rounded-lg cursor-pointer transition-colors",
+                      selectedMembers.includes(user.id)
+                        ? "border-primary bg-primary/5 ring-1 ring-primary"
+                        : "hover:bg-muted/50",
+                    )}
+                    onClick={() => {
+                      if (selectedMembers.includes(user.id)) {
+                        setSelectedMembers(
+                          selectedMembers.filter((id) => id !== user.id),
+                        );
+                      } else {
+                        setSelectedMembers([...selectedMembers, user.id]);
+                      }
+                    }}
+                  >
+                    <div
+                      className={cn(
+                        "h-4 w-4 rounded-full border border-primary flex items-center justify-center",
+                        selectedMembers.includes(user.id)
+                          ? "bg-primary"
+                          : "bg-background",
+                      )}
+                    >
+                      {selectedMembers.includes(user.id) && (
+                        <div className="h-2 w-2 bg-primary-foreground rounded-full" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium leading-none">
+                        {user.name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {user.email}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Tasks</CardTitle>
@@ -355,14 +416,54 @@ export default function EditProjectPage() {
                           )
                         }
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Unassigned" />
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Unassigned">
+                            {task.assigneeId &&
+                            users.find((u) => u.id === task.assigneeId) ? (
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-5 w-5">
+                                  <AvatarImage
+                                    src={
+                                      users.find(
+                                        (u) => u.id === task.assigneeId,
+                                      )?.image
+                                    }
+                                  />
+                                  <AvatarFallback>
+                                    {users
+                                      .find((u) => u.id === task.assigneeId)
+                                      ?.name?.charAt(0)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span>
+                                  {
+                                    users.find((u) => u.id === task.assigneeId)
+                                      ?.name
+                                  }
+                                </span>
+                              </div>
+                            ) : (
+                              "Unassigned"
+                            )}
+                          </SelectValue>
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="unassigned">Unassigned</SelectItem>
+                          <SelectItem value="unassigned">
+                            <span className="text-muted-foreground">
+                              Unassigned
+                            </span>
+                          </SelectItem>
                           {users.map((u) => (
                             <SelectItem key={u.id} value={u.id}>
-                              {u.name}
+                              <div className="flex items-center gap-2">
+                                <Avatar className="h-5 w-5">
+                                  <AvatarImage src={u.image} alt={u.name} />
+                                  <AvatarFallback>
+                                    {u.name.charAt(0)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span>{u.name}</span>
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
