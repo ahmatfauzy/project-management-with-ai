@@ -5,12 +5,12 @@
 
 /* FORCE DARK MODE THEME - FUTURISTIC BLUE/BLACK */
 :root {
-  /* Background: Deep Black/Zinc */
-  --background: oklch(0.10 0.01 260); 
+  /* Background: Deep Black/Zinc - REQUESTED FULL BLACK */
+  --background: oklch(0.1 0.01 260);
   --foreground: oklch(0.98 0 0);
 
   /* Cards: Slightly lighter black */
-  --card: oklch(0.14 0.01 260);
+  --card: oklch(0.12 0.01 260);
   --card-foreground: oklch(0.98 0 0);
 
   /* Popover */
@@ -18,7 +18,7 @@
   --popover-foreground: oklch(0.98 0 0);
 
   /* Primary: Electric Blue / Neon Blue */
-  --primary: oklch(0.60 0.20 260); 
+  --primary: oklch(0.6 0.2 260);
   --primary-foreground: oklch(0.98 0 0);
 
   /* Secondary: Deep Blue Gray */
@@ -26,101 +26,126 @@
   --secondary-foreground: oklch(0.98 0 0);
 
   /* Muted */
-  --muted: oklch(0.20 0.02 260);
-  --muted-foreground: oklch(0.70 0.02 260);
+  --muted: oklch(0.2 0.02 260);
+  --muted-foreground: oklch(0.7 0.02 260);
 
   /* Accent: Hover states, futuristic highlights */
   --accent: oklch(0.28 0.05 260);
   --accent-foreground: oklch(0.98 0 0);
 
   /* Destructive */
-  --destructive: oklch(0.55 0.20 25);
+  --destructive: oklch(0.55 0.2 25);
   --destructive-foreground: oklch(0.98 0 0);
 
   /* Borders & Inputs */
   --border: oklch(0.24 0.02 260);
   --input: oklch(0.24 0.02 260);
-  
-  /* Focus Ring */
-  --ring: oklch(0.60 0.20 260);
 
-  /* Charts: Cyberpunk Palette */
-  --chart-1: oklch(0.60 0.20 260); /* Blue */
-  --chart-2: oklch(0.60 0.18 180); /* Cyan */
-  --chart-3: oklch(0.65 0.18 300); /* Purple */
-  --chart-4: oklch(0.70 0.15 340); /* Pink */
-  --chart-5: oklch(0.70 0.15 40);  /* Orange */
+  /* Focus Ring */
+  --ring: oklch(0.6 0.2 260);
+
+  /* Charts: VIBRANT NEON PALETTE for Black Background */
+  --chart-1: oklch(0.6 0.2 260); /* Electric Blue */
+  --chart-2: oklch(0.7 0.18 200); /* Neon Cyan */
+  --chart-3: oklch(0.65 0.25 300); /* Bright Purple */
+  --chart-4: oklch(0.7 0.2 340); /* Hot Pink */
+  --chart-5: oklch(0.75 0.18 150); /* Neon Green */
 
   /* Sidebar */
-  --sidebar: oklch(0.12 0.01 260);
+  --sidebar: oklch(0.1 0.01 260);
   --sidebar-foreground: oklch(0.98 0 0);
-  --sidebar-primary: oklch(0.60 0.20 260);
+  --sidebar-primary: oklch(0.6 0.2 260);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.20 0.02 260);
+  --sidebar-accent: oklch(0.2 0.02 260);
   --sidebar-accent-foreground: oklch(0.98 0 0);
   --sidebar-border: oklch(0.24 0.02 260);
-  --sidebar-ring: oklch(0.60 0.20 260);
+  --sidebar-ring: oklch(0.6 0.2 260);
 
   /* Fonts */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
-    "Liberation Mono", "Courier New", monospace;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 
   /* Radius & Shadows */
   --radius: 0.5rem;
   --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
   --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.1),
-    0 1px 2px -1px hsl(0 0% 0% / 0.1);
+  --shadow-sm:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
   --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
-  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.1),
-    0 2px 4px -1px hsl(0 0% 0% / 0.1);
-  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.1),
-    0 4px 6px -1px hsl(0 0% 0% / 0.1);
-  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.1),
-    0 8px 10px -1px hsl(0 0% 0% / 0.1);
+  --shadow-md:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 2px 4px -1px hsl(0 0% 0% / 0.1);
+  --shadow-lg:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 4px 6px -1px hsl(0 0% 0% / 0.1);
+  --shadow-xl:
+    0 1px 3px 0px hsl(0 0% 0% / 0.1), 0 8px 10px -1px hsl(0 0% 0% / 0.1);
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+  --kanban-board-circle-blue: oklch(0.6232 0.1879 259.8);
+  --kanban-board-circle-cyan: oklch(0.7146 0.1256 215.13);
+  --kanban-board-circle-gray: oklch(0.5513 0.0233 264.36);
+  --kanban-board-circle-green: oklch(0.7229 0.1921 149.58);
+  --kanban-board-circle-indigo: oklch(0.586 0.2037 277.12);
+  --kanban-board-circle-pink: oklch(0.6559 0.2117 354.34);
+  --kanban-board-circle-purple: oklch(0.6267 0.2325 303.86);
+  --kanban-board-circle-red: oklch(0.6368 0.2078 25.33);
+  --kanban-board-circle-violet: oklch(0.6059 0.2187 292.72);
+  --kanban-board-circle-yellow: oklch(0.7959 0.1618 86.05);
 }
 
 /* Fallback for explicit dark mode class (same values) */
 .dark {
-  --background: oklch(0.10 0.01 260); 
+  --background: oklch(0.1 0.01 260);
   --foreground: oklch(0.98 0 0);
-  --card: oklch(0.14 0.01 260);
+  --card: oklch(0.12 0.01 260);
   --card-foreground: oklch(0.98 0 0);
   --popover: oklch(0.12 0.01 260);
   --popover-foreground: oklch(0.98 0 0);
-  --primary: oklch(0.60 0.20 260); 
+  --primary: oklch(0.6 0.2 260);
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.24 0.04 260);
   --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.20 0.02 260);
-  --muted-foreground: oklch(0.70 0.02 260);
+  --muted: oklch(0.2 0.02 260);
+  --muted-foreground: oklch(0.7 0.02 260);
   --accent: oklch(0.28 0.05 260);
   --accent-foreground: oklch(0.98 0 0);
-  --destructive: oklch(0.55 0.20 25);
+  --destructive: oklch(0.55 0.2 25);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.24 0.02 260);
   --input: oklch(0.24 0.02 260);
-  --ring: oklch(0.60 0.20 260);
-  --chart-1: oklch(0.60 0.20 260);
-  --chart-2: oklch(0.60 0.18 180);
-  --chart-3: oklch(0.65 0.18 300);
-  --chart-4: oklch(0.70 0.15 340);
-  --chart-5: oklch(0.70 0.15 40);
-  --sidebar: oklch(0.12 0.01 260);
+  --ring: oklch(0.6 0.2 260);
+
+  /* Charts: VIBRANT NEON PALETTE for Black Background */
+  --chart-1: oklch(0.6 0.2 260); /* Electric Blue */
+  --chart-2: oklch(0.7 0.18 200); /* Neon Cyan */
+  --chart-3: oklch(0.65 0.25 300); /* Bright Purple */
+  --chart-4: oklch(0.7 0.2 340); /* Hot Pink */
+  --chart-5: oklch(0.75 0.18 150); /* Neon Green */
+
+  --sidebar: oklch(0.1 0.01 260);
   --sidebar-foreground: oklch(0.98 0 0);
-  --sidebar-primary: oklch(0.60 0.20 260);
+  --sidebar-primary: oklch(0.6 0.2 260);
   --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.20 0.02 260);
+  --sidebar-accent: oklch(0.2 0.02 260);
   --sidebar-accent-foreground: oklch(0.98 0 0);
   --sidebar-border: oklch(0.24 0.02 260);
-  --sidebar-ring: oklch(0.60 0.20 260);
+  --sidebar-ring: oklch(0.6 0.2 260);
+  --kanban-board-circle-blue: oklch(0.7135 0.1435 254.61);
+  --kanban-board-circle-cyan: oklch(0.7973 0.1339 211.45);
+  --kanban-board-circle-gray: oklch(0.7137 0.0192 261.33);
+  --kanban-board-circle-green: oklch(0.8003 0.1823 151.7);
+  --kanban-board-circle-indigo: oklch(0.6797 0.1586 276.96);
+  --kanban-board-circle-pink: oklch(0.7253 0.1752 349.74);
+  --kanban-board-circle-purple: oklch(0.7218 0.1766 305.51);
+  --kanban-board-circle-red: oklch(0.7108 0.166 22.21);
+  --kanban-board-circle-violet: oklch(0.7093 0.1589 293.52);
+  --kanban-board-circle-yellow: oklch(0.8601 0.173 91.84);
 }
 
 @theme inline {
@@ -174,6 +199,17 @@
   --shadow-lg: var(--shadow-lg);
   --shadow-xl: var(--shadow-xl);
   --shadow-2xl: var(--shadow-2xl);
+  --kanban-board-circle-primary: var(--primary);
+  --color-kanban-board-circle-yellow: var(--kanban-board-circle-yellow);
+  --color-kanban-board-circle-violet: var(--kanban-board-circle-violet);
+  --color-kanban-board-circle-red: var(--kanban-board-circle-red);
+  --color-kanban-board-circle-purple: var(--kanban-board-circle-purple);
+  --color-kanban-board-circle-pink: var(--kanban-board-circle-pink);
+  --color-kanban-board-circle-indigo: var(--kanban-board-circle-indigo);
+  --color-kanban-board-circle-green: var(--kanban-board-circle-green);
+  --color-kanban-board-circle-gray: var(--kanban-board-circle-gray);
+  --color-kanban-board-circle-cyan: var(--kanban-board-circle-cyan);
+  --color-kanban-board-circle-blue: var(--kanban-board-circle-blue);
 }
 
 @layer base {
@@ -182,5 +218,18 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  :root {
+    --color-kanban-board-circle-blue: var(--kanban-board-circle-blue);
+    --color-kanban-board-circle-cyan: var(--kanban-board-circle-cyan);
+    --color-kanban-board-circle-gray: var(--kanban-board-circle-gray);
+    --color-kanban-board-circle-green: var(--kanban-board-circle-green);
+    --color-kanban-board-circle-indigo: var(--kanban-board-circle-indigo);
+    --color-kanban-board-circle-pink: var(--kanban-board-circle-pink);
+    --color-kanban-board-circle-primary: var(--kanban-board-circle-primary);
+    --color-kanban-board-circle-purple: var(--kanban-board-circle-purple);
+    --color-kanban-board-circle-red: var(--kanban-board-circle-red);
+    --color-kanban-board-circle-violet: var(--kanban-board-circle-violet);
+    --color-kanban-board-circle-yellow: var(--kanban-board-circle-yellow);
   }
 }

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google"; // Using Inter as standard modern font
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner"; // Assuming shadcn installed sonner based on package.json
-
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
