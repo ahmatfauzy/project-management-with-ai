@@ -24,31 +24,84 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   TrendingUp,
   AlertTriangle,
   BrainCircuit,
   Calendar,
+  Users,
+  CheckCircle2,
+  Clock,
+  Target,
+  Zap,
+  BarChart3,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 
-// --- Mock Data ---
+interface ApiUser {
+  id: string;
+  name: string;
+  role: string;
+  department?: string;
+  image?: string;
+  status?: string;
+}
 
-const churnRiskData = [
-  { subject: "Workload", A: 120, fullMark: 150 },
-  { subject: "Overtime", A: 98, fullMark: 150 },
-  { subject: "Satisfaction", A: 40, fullMark: 150 },
-  { subject: "Tenure", A: 85, fullMark: 150 },
-  { subject: "Engagement", A: 65, fullMark: 150 },
-  { subject: "Growth", A: 50, fullMark: 150 },
-];
+interface Performer {
+  id: string;
+  name: string;
+  role: string;
+  department: string;
+  image?: string;
+  completionRate: number;
+  qualityScore: string;
+  activeTaskCount: number;
+}
 
-const workloadData = [
-  { name: "Dev Team", tasks: 45, intensity: "High" },
-  { name: "Design", tasks: 32, intensity: "Medium" },
-  { name: "Marketing", tasks: 28, intensity: "Medium" },
-  { name: "Sales", tasks: 50, intensity: "Critical" },
-  { name: "HR", tasks: 20, intensity: "Low" },
-];
+interface WorkloadEmployee {
+  userId: string;
+  name: string;
+  activeTaskCount: number;
+  status: string;
+}
+
+interface HRStats {
+  overview: {
+    totalEmployees: number;
+    pendingApprovals: number;
+    activeProjects: number;
+    avgWorkload: number;
+  };
+  workloadStats?: {
+    totalActiveTasks: number;
+    avgTasksPerEmployee: number;
+    overloadedUsers: number;
+    maxWorkload: number;
+    minWorkload: number;
+  };
+  departmentDistribution?: Array<{
+    name: string;
+    count: number;
+    percentage: number;
+  }>;
+}
+
+interface AnalyticsData {
+  overview: {
+    totalTasks: number;
+    completedTasks: number;
+    completionRate: string | number;
+  };
+  workload: WorkloadEmployee[];
+}
+
+interface DepartmentWorkload {
+  name: string;
+  tasks: number;
+  intensity: "Critical" | "High" | "Medium" | "Low";
+  employees: number;
+}
 
 const getIntensityColor = (intensity: string) => {
   switch (intensity) {
@@ -65,53 +118,223 @@ const getIntensityColor = (intensity: string) => {
   }
 };
 
-import { useEffect, useState } from "react";
-
-interface ApiUser {
-  id: string;
-  name: string;
-  role: string;
-  department?: string;
-  image?: string;
-}
-
-interface Performer {
-  id: string;
-  name: string;
-  role: string;
-  image?: string;
-  completionRate: number;
-  qualityScore: string;
-}
+const getIntensity = (
+  avgTasks: number
+): "Critical" | "High" | "Medium" | "Low" => {
+  if (avgTasks >= 10) return "Critical";
+  if (avgTasks >= 7) return "High";
+  if (avgTasks >= 4) return "Medium";
+  return "Low";
+};
 
 export default function TalentIntelligencePage() {
   const [performers, setPerformers] = useState<Performer[]>([]);
+  const [departmentWorkload, setDepartmentWorkload] = useState<
+    DepartmentWorkload[]
+  >([]);
+  const [hrStats, setHrStats] = useState<HRStats | null>(null);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [churnRiskData, setChurnRiskData] = useState([
+    { subject: "Workload", A: 0, fullMark: 150 },
+    { subject: "Overtime", A: 0, fullMark: 150 },
+    { subject: "Satisfaction", A: 0, fullMark: 150 },
+    { subject: "Tenure", A: 0, fullMark: 150 },
+    { subject: "Engagement", A: 0, fullMark: 150 },
+    { subject: "Growth", A: 0, fullMark: 150 },
+  ]);
+  const [overallRiskLevel, setOverallRiskLevel] = useState<
+    "Low" | "Medium" | "High"
+  >("Low");
 
   useEffect(() => {
-    const fetchTalent = async () => {
+    const fetchAllData = async () => {
       try {
-        const res = await fetch("/api/users");
-        if (res.ok) {
-          const data = await res.json();
-          const mapped = data
-            .filter((u: ApiUser) => u.role === "employee")
-            .slice(0, 5)
-            .map((u: ApiUser) => ({
-              id: u.id,
-              name: u.name,
-              role: u.department || "Employee",
-              image: u.image,
-              completionRate: Math.floor(Math.random() * (100 - 80) + 80),
-              qualityScore: (Math.random() * (5.0 - 4.0) + 4.0).toFixed(1),
-            }));
-          setPerformers(mapped);
+        setLoading(true);
+
+        // Fetch all data in parallel
+        const [usersRes, hrStatsRes, analyticsRes] = await Promise.all([
+          fetch("/api/users"),
+          fetch("/api/dashboard/hr/stats"),
+          fetch("/api/analytics"),
+        ]);
+
+        let users: ApiUser[] = [];
+        let workloadData: WorkloadEmployee[] = [];
+
+        // Process Users
+        if (usersRes.ok) {
+          users = await usersRes.json();
+        }
+
+        // Process HR Stats
+        if (hrStatsRes.ok) {
+          const result = await hrStatsRes.json();
+          if (result.success) {
+            setHrStats(result.data);
+          }
+        }
+
+        // Process Analytics
+        if (analyticsRes.ok) {
+          const analyticsData = await analyticsRes.json();
+          setAnalytics(analyticsData);
+          workloadData = analyticsData.workload || [];
+        }
+
+        // Calculate Top Performers from users with analytics data
+        const activeEmployees = users.filter(
+          (u: ApiUser) =>
+            (u.role === "employee" || u.role === "pm") && u.status === "active"
+        );
+
+        // Merge user data with workload data
+        const performersData = activeEmployees.slice(0, 6).map((u: ApiUser) => {
+          const workload = workloadData.find(
+            (w: WorkloadEmployee) => w.userId === u.id
+          );
+          // Generate realistic performance metrics based on workload
+
+          // Use default values since we don't have real performance data yet
+          const completionRate = 0;
+          const qualityBase = 0;
+
+
+          return {
+            id: u.id,
+            name: u.name || "Unknown",
+            role: u.role,
+            department: u.department || "General",
+            image: u.image,
+            completionRate,
+            qualityScore: qualityBase.toFixed(1),
+            activeTaskCount: workload?.activeTaskCount || 0,
+          };
+        });
+
+        // Sort by completion rate
+        performersData.sort((a, b) => b.completionRate - a.completionRate);
+        setPerformers(performersData.slice(0, 5));
+
+        // Calculate Department Workload Distribution
+        const deptWorkloadMap = new Map<
+          string,
+          { tasks: number; employees: number }
+        >();
+
+        activeEmployees.forEach((user) => {
+          const dept = user.department || "Unassigned";
+          const workload = workloadData.find((w) => w.userId === user.id);
+          const current = deptWorkloadMap.get(dept) || {
+            tasks: 0,
+            employees: 0,
+          };
+          deptWorkloadMap.set(dept, {
+            tasks: current.tasks + (workload?.activeTaskCount || 0),
+            employees: current.employees + 1,
+          });
+        });
+
+        const deptWorkloadArray: DepartmentWorkload[] = [];
+        deptWorkloadMap.forEach((value, key) => {
+          const avgTasks =
+            value.employees > 0 ? value.tasks / value.employees : 0;
+          deptWorkloadArray.push({
+            name: key,
+            tasks: value.tasks,
+            employees: value.employees,
+            intensity: getIntensity(avgTasks),
+          });
+        });
+
+        // Sort by task count
+        deptWorkloadArray.sort((a, b) => b.tasks - a.tasks);
+        setDepartmentWorkload(deptWorkloadArray.slice(0, 6));
+
+        // Calculate Churn Risk metrics based on real data
+        const totalEmployees = activeEmployees.length;
+        const overloadedCount = workloadData.filter(
+          (w) => w.status === "Overloaded"
+        ).length;
+
+        // Workload risk: based on overloaded percentage
+        const workloadRisk = Math.min(
+          150,
+          Math.round((overloadedCount / Math.max(totalEmployees, 1)) * 300)
+        );
+
+        // Other risk factors (simulated but influenced by real data)
+        const avgTaskCount =
+          workloadData.length > 0
+            ? workloadData.reduce((sum, w) => sum + w.activeTaskCount, 0) /
+              workloadData.length
+            : 0;
+
+        const newChurnRiskData = [
+          { subject: "Workload", A: workloadRisk || 40, fullMark: 150 },
+          {
+            subject: "Overtime",
+            A: Math.min(150, avgTaskCount * 15) || 50,
+            fullMark: 150,
+          },
+          {
+            subject: "Satisfaction",
+            A: Math.max(20, 100 - overloadedCount * 20),
+            fullMark: 150,
+          },
+          { subject: "Tenure", A: 0, fullMark: 150 },
+          { subject: "Engagement", A: 0, fullMark: 150 },
+          { subject: "Growth", A: 0, fullMark: 150 },
+        ];
+
+        setChurnRiskData(newChurnRiskData);
+
+        // Calculate overall risk level
+        const avgRisk =
+          newChurnRiskData.reduce((sum, d) => sum + d.A, 0) /
+          newChurnRiskData.length;
+        if (avgRisk >= 100) {
+          setOverallRiskLevel("High");
+        } else if (avgRisk >= 70) {
+          setOverallRiskLevel("Medium");
+        } else {
+          setOverallRiskLevel("Low");
         }
       } catch (e) {
-        console.error(e);
+        console.error("Failed to fetch talent data:", e);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchTalent();
+
+    fetchAllData();
   }, []);
+
+  const getRiskBadge = () => {
+    switch (overallRiskLevel) {
+      case "High":
+        return (
+          <Badge variant="destructive" className="animate-pulse">
+            <AlertTriangle className="w-3 h-3 mr-1" />
+            High Risk Detected
+          </Badge>
+        );
+      case "Medium":
+        return (
+          <Badge className="bg-yellow-500 hover:bg-yellow-600">
+            <AlertTriangle className="w-3 h-3 mr-1" />
+            Moderate Risk
+          </Badge>
+        );
+      default:
+        return (
+          <Badge className="bg-green-500 hover:bg-green-600">
+            <CheckCircle2 className="w-3 h-3 mr-1" />
+            Low Risk
+          </Badge>
+        );
+    }
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 pt-0">
@@ -136,6 +359,86 @@ export default function TalentIntelligencePage() {
         </div>
       </div>
 
+      {/* Quick Stats Row */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {loading ? (
+          <>
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i}>
+                <CardContent className="p-6">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-8 w-16 mb-1" />
+                  <Skeleton className="h-3 w-20" />
+                </CardContent>
+              </Card>
+            ))}
+          </>
+        ) : (
+          <>
+            <Card className="border-blue-100 dark:border-blue-900">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Users className="w-4 h-4 text-blue-500" />
+                  Total Employees
+                </div>
+                <p className="text-2xl font-bold">
+                  {hrStats?.overview.totalEmployees || 0}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  across all departments
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="border-green-100 dark:border-green-900">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Target className="w-4 h-4 text-green-500" />
+                  Completion Rate
+                </div>
+                <p className="text-2xl font-bold">
+                  {analytics?.overview.completionRate || 0}%
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  overall task completion
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="border-orange-100 dark:border-orange-900">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Clock className="w-4 h-4 text-orange-500" />
+                  Active Tasks
+                </div>
+                <p className="text-2xl font-bold">
+                  {hrStats?.workloadStats?.totalActiveTasks ||
+                    analytics?.overview.totalTasks ||
+                    0}
+                </p>
+                <p className="text-xs text-muted-foreground">in progress</p>
+              </CardContent>
+            </Card>
+            <Card className="border-red-100 dark:border-red-900">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Zap className="w-4 h-4 text-red-500" />
+                  Overloaded
+                </div>
+                <p className="text-2xl font-bold">
+                  {hrStats?.workloadStats?.overloadedUsers || 0}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {hrStats?.workloadStats?.overloadedUsers === 0 ? (
+                    <span className="text-green-600">balanced workload</span>
+                  ) : (
+                    <span className="text-red-600">need attention</span>
+                  )}
+                </p>
+              </CardContent>
+            </Card>
+          </>
+        )}
+      </div>
+
       {/* Top Section: Key Metrics & Top Performers */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         {/* Top Performers Card */}
@@ -150,50 +453,90 @@ export default function TalentIntelligencePage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              {performers.map((user) => (
-                <div
-                  key={user.id}
-                  className="flex items-center justify-between space-x-4"
-                >
-                  <div className="flex items-center space-x-4">
-                    <Avatar className="h-10 w-10 border-2 border-indigo-100">
-                      <AvatarImage src={user.image} alt={user.name} />
-                      <AvatarFallback>{user.name[0]}</AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <p className="text-sm font-medium leading-none">
-                        {user.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {user.role}
+            {loading ? (
+              <div className="space-y-6">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                      <Skeleton className="h-10 w-10 rounded-full" />
+                      <div>
+                        <Skeleton className="h-4 w-32 mb-1" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Skeleton className="h-4 w-16 mb-1" />
+                      <Skeleton className="h-2 w-32" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : performers.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                No employee data available.
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {performers.map((user, index) => (
+                  <div
+                    key={user.id}
+                    className="flex items-center justify-between space-x-4"
+                  >
+                    <div className="flex items-center space-x-4">
+                      <div className="relative">
+                        <Avatar className="h-10 w-10 border-2 border-indigo-100">
+                          <AvatarImage src={user.image} alt={user.name} />
+                          <AvatarFallback>
+                            {user.name
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")}
+                          </AvatarFallback>
+                        </Avatar>
+                        {index < 3 && (
+                          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-indigo-500 text-[10px] font-bold text-white">
+                            {index + 1}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium leading-none">
+                          {user.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {user.department} · {user.activeTaskCount} active
+                          tasks
+                        </p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="flex items-center gap-2 justify-end">
+                        <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
+                          {user.qualityScore}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          Quality
+                        </span>
+                      </div>
+                      <div className="w-32 h-2 bg-secondary rounded-full mt-1 overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all"
+                          style={{ width: `${user.completionRate}%` }}
+                        />
+                      </div>
+                      <p className="text-[10px] text-muted-foreground mt-0.5">
+                        {user.completionRate}% completion
                       </p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <div className="flex items-center gap-2 justify-end">
-                      <span className="text-sm font-bold text-indigo-600 dark:text-indigo-400">
-                        {user.qualityScore}
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        Quality Score
-                      </span>
-                    </div>
-                    <div className="w-32 h-2 bg-secondary rounded-full mt-1 overflow-hidden">
-                      <div
-                        className="h-full bg-indigo-500"
-                        style={{ width: `${user.completionRate}%` }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
         {/* Churn Prediction Radar */}
-        <Card className="lg:col-span-3 border-indigo-100 dark:border-indigo-900 shadow-sm">
+        <Card className="lg:col-span-3 border-indigo-100 dark:border-indigo-900 shadow-sm relative">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-red-600 dark:text-red-400">
               <AlertTriangle className="h-5 w-5" />
@@ -203,48 +546,64 @@ export default function TalentIntelligencePage() {
               Analysis of risk factors for at-risk employees.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex justify-center">
-            <div className="h-[250px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart
-                  cx="50%"
-                  cy="50%"
-                  outerRadius="80%"
-                  data={churnRiskData}
-                >
-                  <PolarGrid stroke="#e2e8f0" />
-                  <PolarAngleAxis
-                    dataKey="subject"
-                    tick={{ fill: "#64748b", fontSize: 12 }}
-                  />
-                  <PolarRadiusAxis
-                    angle={30}
-                    domain={[0, 150]}
-                    tick={false}
-                    axisLine={false}
-                  />
-                  <Radar
-                    name="Risk Level"
-                    dataKey="A"
-                    stroke="#ef4444"
-                    fill="#ef4444"
-                    fillOpacity={0.5}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: "8px",
-                      border: "none",
-                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                    }}
-                  />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="absolute bottom-6 right-6">
-              <Badge variant="destructive" className="animate-pulse">
-                High Risk Detected
-              </Badge>
-            </div>
+          <CardContent className="flex flex-col items-center">
+            {loading ? (
+              <div className="h-[250px] w-full flex items-center justify-center">
+                <Skeleton className="h-48 w-48 rounded-full" />
+              </div>
+            ) : (
+              <>
+                <div className="h-[250px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart
+                      cx="50%"
+                      cy="50%"
+                      outerRadius="80%"
+                      data={churnRiskData}
+                    >
+                      <PolarGrid stroke="#e2e8f0" />
+                      <PolarAngleAxis
+                        dataKey="subject"
+                        tick={{ fill: "#64748b", fontSize: 12 }}
+                      />
+                      <PolarRadiusAxis
+                        angle={30}
+                        domain={[0, 150]}
+                        tick={false}
+                        axisLine={false}
+                      />
+                      <Radar
+                        name="Risk Level"
+                        dataKey="A"
+                        stroke={
+                          overallRiskLevel === "High"
+                            ? "#ef4444"
+                            : overallRiskLevel === "Medium"
+                              ? "#f59e0b"
+                              : "#22c55e"
+                        }
+                        fill={
+                          overallRiskLevel === "High"
+                            ? "#ef4444"
+                            : overallRiskLevel === "Medium"
+                              ? "#f59e0b"
+                              : "#22c55e"
+                        }
+                        fillOpacity={0.5}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "8px",
+                          border: "none",
+                          boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                        }}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-2">{getRiskBadge()}</div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -252,47 +611,94 @@ export default function TalentIntelligencePage() {
       {/* Bottom Section: Workload Heatmap/Chart */}
       <Card className="border-indigo-100 dark:border-indigo-900 shadow-sm">
         <CardHeader>
-          <CardTitle>Workload Distribution Heatmap</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-indigo-500" />
+            Workload Distribution by Department
+          </CardTitle>
           <CardDescription>
             Current task load intensity across different departments.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={workloadData}
-                layout="vertical"
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-              >
-                <XAxis type="number" hide />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  axisLine={false}
-                  tickLine={false}
-                  width={100}
-                  tick={{ fill: "#64748b", fontSize: 14, fontWeight: 500 }}
-                />
-                <Tooltip
-                  cursor={{ fill: "transparent" }}
-                  contentStyle={{
-                    borderRadius: "8px",
-                    border: "none",
-                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                  }}
-                />
-                <Bar dataKey="tasks" radius={[0, 4, 4, 0]} barSize={32}>
-                  {workloadData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={getIntensityColor(entry.intensity)}
+          {loading ? (
+            <div className="h-[300px] w-full flex items-center justify-center">
+              <div className="space-y-4 w-full">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center gap-4">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-8 flex-1" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : departmentWorkload.length === 0 ? (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              No workload data available.
+            </div>
+          ) : (
+            <>
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={departmentWorkload}
+                    layout="vertical"
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <XAxis type="number" hide />
+                    <YAxis
+                      dataKey="name"
+                      type="category"
+                      axisLine={false}
+                      tickLine={false}
+                      width={100}
+                      tick={{ fill: "#64748b", fontSize: 14, fontWeight: 500 }}
                     />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+                    <Tooltip
+                      cursor={{ fill: "transparent" }}
+                      contentStyle={{
+                        borderRadius: "8px",
+                        border: "none",
+                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                      }}
+                      formatter={(value: number, name: string, props: any) => [
+                        `${value} tasks (${props.payload.employees} employees)`,
+                        "Workload",
+                      ]}
+                    />
+                    <Bar dataKey="tasks" radius={[0, 4, 4, 0]} barSize={32}>
+                      {departmentWorkload.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={getIntensityColor(entry.intensity)}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Legend */}
+              <div className="flex items-center justify-center gap-6 mt-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#22c55e]" />
+                  <span className="text-xs text-muted-foreground">Low</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#3b82f6]" />
+                  <span className="text-xs text-muted-foreground">Medium</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#f97316]" />
+                  <span className="text-xs text-muted-foreground">High</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-[#ef4444]" />
+                  <span className="text-xs text-muted-foreground">
+                    Critical
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

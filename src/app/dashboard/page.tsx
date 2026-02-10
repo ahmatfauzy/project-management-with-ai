@@ -1,25 +1,15 @@
-import { auth } from "@/lib/auth";
-import { headers } from "next/headers";
+import { getSessionUser, getRoleDashboardPath } from "@/lib/auth-guard";
 import { redirect } from "next/navigation";
 
+/**
+ * Main Dashboard Page
+ * Redirects users to their role-specific dashboard
+ */
 export default async function DashboardPage() {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const user = await getSessionUser();
 
-  if (!session) {
-    redirect("/auth/login");
-  }
-
-  if (session.user.role === "hr") {
-    redirect("/dashboard/hr");
-  }
-
-  if (session.user.role === "pm") {
-    redirect("/dashboard/pm");
-  }
-
-  if (session.user.role === "employee") {
-    redirect("/dashboard/employee");
-  }
-
-  return <div>Dashboard</div>;
+  // Redirect to role-specific dashboard
+  const dashboardPath = getRoleDashboardPath(user.role);
+  redirect(dashboardPath);
 }
+

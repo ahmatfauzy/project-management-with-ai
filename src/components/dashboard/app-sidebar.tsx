@@ -1,8 +1,8 @@
 "use client";
 
 import * as React from "react";
-import { usePathname } from "next/navigation";
 import { IconInnerShadowTop } from "@tabler/icons-react";
+import Link from "next/link";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -17,34 +17,31 @@ import {
 } from "@/components/ui/sidebar";
 import { dashboardConfig } from "@/config/dashboard";
 
-interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  role?: "employee" | "pm" | "hr";
-}
+export type UserRole = "employee" | "pm" | "hr";
 
-export function AppSidebar({
-  role = "employee",
-  user,
-  ...props
-}: AppSidebarProps & {
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: {
     name: string;
     email: string;
     avatar: string;
     role?: string;
   };
-}) {
-  const pathname = usePathname();
+}
 
-  // Auto-detect role based on URL for development seamlessness
-  let currentRole = role;
-  if (pathname?.startsWith("/dashboard/pm")) {
-    currentRole = "pm";
-  } else if (pathname?.startsWith("/dashboard/hr")) {
-    currentRole = "hr";
-  }
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
+  // Use the actual user role from session, not from URL
+  const userRole = (user.role as UserRole) || "employee";
 
-  // Select navigation items based on role
-  const navItems = dashboardConfig[currentRole] || dashboardConfig.employee;
+  // Get navigation items based on user's actual role
+  const navItems = dashboardConfig[userRole] || dashboardConfig.employee;
+
+  // Get home link based on role
+  const homeLink =
+    userRole === "hr"
+      ? "/dashboard/hr"
+      : userRole === "pm"
+        ? "/dashboard/pm"
+        : "/dashboard/employee";
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -55,12 +52,12 @@ export function AppSidebar({
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <Link href={homeLink}>
                 <IconInnerShadowTop className="!size-5" />
                 <span className="text-base font-semibold">
                   Quavity Dashboard
                 </span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -74,3 +71,4 @@ export function AppSidebar({
     </Sidebar>
   );
 }
+

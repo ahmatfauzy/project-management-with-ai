@@ -41,21 +41,30 @@ export async function uploadToCloudinary(
         public_id: options?.public_id,
         resource_type: options?.resource_type || "auto",
         transformation: options?.transformation,
+        timeout: 60000, // 60 seconds timeout
       },
       (error, result) => {
         if (error) {
+          console.error("Cloudinary Upload Error:", error);
           reject(error);
         } else if (result) {
           resolve(result as unknown as CloudinaryUploadResult);
         } else {
-          reject(new Error("Upload failed: no result returned"));
+          reject(new Error("Upload failed: no result returned from Cloudinary"));
         }
       }
     );
 
+    // Handle stream errors
+    uploadStream.on("error", (error) => {
+        console.error("Upload Stream Error:", error);
+        reject(error);
+    });
+
     uploadStream.end(buffer);
   });
 }
+
 
 // Upload from base64 string
 export async function uploadBase64ToCloudinary(

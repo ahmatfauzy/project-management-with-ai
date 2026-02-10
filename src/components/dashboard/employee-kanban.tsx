@@ -90,6 +90,15 @@ function KanbanContent({
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   onTaskClick: (task: Task) => void;
 }) {
+  const [moveRequest, setMoveRequest] = useState<{
+    taskId: string;
+    targetStatus: string;
+    originalStatus: string;
+  } | null>(null);
+  const [evidenceDescription, setEvidenceDescription] = useState("");
+  const [evidenceFile, setEvidenceFile] = useState<any>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useDndMonitor({
     onDragEnd: async (activeId, overId) => {
       if (!overId) return;
@@ -115,7 +124,22 @@ function KanbanContent({
         if (card) newStatus = card.status;
       }
 
-      if (activeTask.status !== newStatus) {
+      const activeStatusNormal = activeTask.status; // Current status
+      
+      // If status is changing
+      if (activeStatusNormal !== newStatus) {
+        // INTERCEPT LOGIC: If moving TO Review or Done
+        if (newStatus === "Review" || newStatus === "Done") {
+           setMoveRequest({
+             taskId: activeTask.id,
+             targetStatus: newStatus,
+             originalStatus: activeStatusNormal,
+           });
+           // Do NOT update state yet. Wait for modal confirmation.
+           return;
+        }
+
+        // Standard logic for other moves (e.g. Todo -> In Progress)
         const previousStatus = activeTask.status;
 
         // Optimistic Update
@@ -146,7 +170,66 @@ function KanbanContent({
     },
   });
 
-  console.log(tasks);
+  const handleConfirmMove = async () => {
+    if (!moveRequest) return;
+    if (!evidenceDescription) {
+      toast.error("Please provide a description.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // 1. Submit Evidence
+      // Construct body
+      const evidenceBody: any = {
+         description: evidenceDescription,
+         fileType: "image",
+      };
+      if (evidenceFile) {
+        evidenceBody.fileUrl = evidenceFile.secure_url;
+        evidenceBody.publicId = evidenceFile.public_id;
+      }
+
+      const evidenceRes = await fetch(`/api/tasks/${moveRequest.taskId}/evidence`, {
+        method: "POST",
+        body: JSON.stringify(evidenceBody),
+      });
+
+      if (!evidenceRes.ok) throw new Error("Failed to save evidence");
+
+      // 2. Update Status
+      const dbStatus = mapKanbanStatusToDb(moveRequest.targetStatus);
+      const statusRes = await fetch(`/api/tasks/${moveRequest.taskId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: dbStatus }),
+      });
+
+      if (!statusRes.ok) throw new Error("Failed to update status");
+
+      // 3. Update Local State
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === moveRequest.taskId
+            ? { ...t, status: moveRequest.targetStatus, description: evidenceDescription }
+            : t
+        )
+      );
+
+      toast.success(`Task moved to ${moveRequest.targetStatus}`);
+      handleCancelMove();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to move task");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancelMove = () => {
+    setMoveRequest(null);
+    setEvidenceDescription("");
+    setEvidenceFile(null);
+  };
 
   const columnsData = useMemo(() => {
     return COLUMNS.map((col) => ({
@@ -156,56 +239,98 @@ function KanbanContent({
   }, [tasks]);
 
   return (
-    <KanbanBoard className="h-full">
-      {columnsData.map((col) => (
-        <KanbanBoardColumn key={col.id} columnId={col.id}>
-          <KanbanBoardColumnHeader>
-            <div className="flex items-center gap-2">
-              <KanbanColorCircle color={col.color} />
-              <KanbanBoardColumnTitle columnId={col.id}>
-                {col.title}
-              </KanbanBoardColumnTitle>
-              <Badge variant="secondary" className="ml-auto">
-                {col.tasks.length}
-              </Badge>
-            </div>
-          </KanbanBoardColumnHeader>
+    <>
+      <KanbanBoard className="h-full">
+        {columnsData.map((col) => (
+          <KanbanBoardColumn key={col.id} columnId={col.id}>
+            <KanbanBoardColumnHeader>
+              <div className="flex items-center gap-2">
+                <KanbanColorCircle color={col.color} />
+                <KanbanBoardColumnTitle columnId={col.id}>
+                  {col.title}
+                </KanbanBoardColumnTitle>
+                <Badge variant="secondary" className="ml-auto">
+                  {col.tasks.length}
+                </Badge>
+              </div>
+            </KanbanBoardColumnHeader>
 
-          <KanbanBoardColumnList>
-            {col.tasks.map((task) => (
-              <KanbanBoardColumnListItem key={task.id} cardId={task.id}>
-                <KanbanBoardCard
-                  data={{ id: task.id }}
-                  className="flex flex-col gap-2 cursor-grab hover:border-primary/50 transition-colors"
-                  onClick={() => onTaskClick(task)}
-                >
-                  <div className="flex justify-between items-start">
-                    <KanbanBoardCardTitle>{task.header}</KanbanBoardCardTitle>
-                  </div>
-
-                  <KanbanBoardCardDescription className="text-white">
-                    {task.type}
-                  </KanbanBoardCardDescription>
-
-                  <div className="flex items-center justify-between mt-2">
-                    <Badge
-                      variant="outline"
-                      className="text-[10px] px-1 py-0 h-5"
-                    >
-                      {task.reviewer ? task.reviewer.split(" ")[0] : "Me"}
-                    </Badge>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded">
-                      <CalendarClock className="h-3 w-3" />
-                      <span>{task.limit}</span>
+            <KanbanBoardColumnList>
+              {col.tasks.map((task) => (
+                <KanbanBoardColumnListItem key={task.id} cardId={task.id}>
+                  <KanbanBoardCard
+                    data={{ id: task.id }}
+                    className="flex flex-col gap-2 cursor-grab hover:border-primary/50 transition-colors"
+                    onClick={() => onTaskClick(task)}
+                  >
+                    <div className="flex justify-between items-start">
+                      <KanbanBoardCardTitle>{task.header}</KanbanBoardCardTitle>
                     </div>
-                  </div>
-                </KanbanBoardCard>
-              </KanbanBoardColumnListItem>
-            ))}
-          </KanbanBoardColumnList>
-        </KanbanBoardColumn>
-      ))}
-    </KanbanBoard>
+
+                    <KanbanBoardCardDescription className="text-white">
+                      {task.type}
+                    </KanbanBoardCardDescription>
+
+                    <div className="flex items-center justify-between mt-2">
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] px-1 py-0 h-5"
+                      >
+                        {task.reviewer ? task.reviewer.split(" ")[0] : "Me"}
+                      </Badge>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted/50 px-2 py-1 rounded">
+                        <CalendarClock className="h-3 w-3" />
+                        <span>{task.limit}</span>
+                      </div>
+                    </div>
+                  </KanbanBoardCard>
+                </KanbanBoardColumnListItem>
+              ))}
+            </KanbanBoardColumnList>
+          </KanbanBoardColumn>
+        ))}
+      </KanbanBoard>
+
+      <Modal
+        isOpen={!!moveRequest}
+        onClose={handleCancelMove}
+        title={`Submit Evidence for ${moveRequest?.targetStatus}`}
+        size="lg"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Please provide a description and evidence (optional but recommended) to move this task to <strong>{moveRequest?.targetStatus}</strong>.
+          </p>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Description</label>
+            <textarea
+              className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Describe what you did..."
+              value={evidenceDescription}
+              onChange={(e) => setEvidenceDescription(e.target.value)}
+            />
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Evidence (Image/PDF)</label>
+            <FileUpload
+              folder="task-evidence"
+              onUploadComplete={(res) => setEvidenceFile(res)}
+            />
+            {evidenceFile && (
+               <div className="text-xs text-green-500 mt-1">File Attached.</div>
+            )}
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={handleCancelMove} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmMove} disabled={isSubmitting}>
+              {isSubmitting ? "Submitting..." : "Submit & Move"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }
 

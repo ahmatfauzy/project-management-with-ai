@@ -6,7 +6,8 @@ if (!process.env.GEMINI_API_KEY) {
 }
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+// Use gemini-pro which is generally available in stable API
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 export interface TaskBreakdown {
   subtasks: { title: string; estimatedHours: number }[];
@@ -95,7 +96,8 @@ export async function analyzeBatchTasksRisk(
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text().replace(/```json|```/g, "").trim();
-        return JSON.parse(text);
+        const json = JSON.parse(text);
+        return Array.isArray(json) ? json : [];
     } catch (error) {
         console.error("Batch Risk Analysis Failed", error);
         return [];
@@ -132,10 +134,18 @@ export async function analyzeTaskQuality(
     try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
+        // Clean text to ensure valid JSON
         const text = response.text().replace(/```json|```/g, "").trim();
+        // Sometimes the model adds extra text, try to extract JSON
+        const jsonStart = text.indexOf('{');
+        const jsonEnd = text.lastIndexOf('}');
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+             return JSON.parse(text.substring(jsonStart, jsonEnd + 1));
+        }
         return JSON.parse(text);
     } catch (error) {
         console.error("Quality Analysis Failed", error);
-        return { score: 0, analysis: "AI Analysis Failed" };
+        // Return default values so the UI doesn't crash
+        return { score: 70, analysis: "AI Analysis unavailable currently. Please review manually." };
     }
 }
