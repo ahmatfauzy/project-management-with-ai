@@ -107,7 +107,7 @@ export function AIAnalysisCard({
         </div>
 
         {/* Checklist */}
-        <div className="bg-muted/20 rounded-lg p-3 border space-y-2">
+        {/* <div className="bg-muted/20 rounded-lg p-3 border space-y-2">
           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground mb-2">
             <span>SECURITY & PERFORMANCE</span>
             <span>STATUS</span>
@@ -129,7 +129,7 @@ export function AIAnalysisCard({
               </div>
             </div>
           ))}
-        </div>
+        </div> */}
       </CardContent>
     </Card>
   );

@@ -1,13 +1,93 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import Groq from "groq-sdk";
 
-if (!process.env.GEMINI_API_KEY) {
-  throw new Error("Missing GEMINI_API_KEY environment variable");
+// --- Provider Setup ---
+
+const geminiKey = process.env.GEMINI_API_KEY;
+const groqKey = process.env.GROQ_API_KEY;
+
+if (!geminiKey && !groqKey) {
+  throw new Error("Missing AI API key. Set GEMINI_API_KEY or GROQ_API_KEY in .env");
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-// Use gemini-pro which is generally available in stable API
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+// Gemini setup (primary)
+const genAI = geminiKey ? new GoogleGenerativeAI(geminiKey) : null;
+const geminiModel = genAI?.getGenerativeModel({ model: "gemini-2.0-flash" });
+
+// Groq setup (fallback)
+const groq = groqKey ? new Groq({ apiKey: groqKey }) : null;
+const GROQ_MODEL = "llama-3.3-70b-versatile";
+
+// --- Core AI Call with Fallback ---
+
+/**
+ * Sends a prompt to Gemini first. If Gemini fails (rate limit, error, etc.),
+ * falls back to Groq. Returns the raw text response.
+ */
+async function callAI(prompt: string): Promise<string> {
+  // Try Gemini first
+  if (geminiModel) {
+    try {
+      const result = await geminiModel.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
+    } catch (error: any) {
+      console.warn(
+        `⚠️ Gemini failed (${error?.status || "unknown"}), falling back to Groq...`
+      );
+      // Fall through to Groq
+    }
+  }
+
+  // Fallback to Groq
+  if (groq) {
+    try {
+      const chatCompletion = await groq.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content:
+              "You are an AI assistant. Always respond with valid JSON only, no markdown formatting, no extra text.",
+          },
+          { role: "user", content: prompt },
+        ],
+        model: GROQ_MODEL,
+        temperature: 0.3,
+        max_tokens: 2048,
+      });
+
+      return chatCompletion.choices[0]?.message?.content || "";
+    } catch (error) {
+      console.error("❌ Groq also failed:", error);
+      throw new Error("All AI providers failed");
+    }
+  }
+
+  throw new Error("No AI provider available");
+}
+
+/**
+ * Parses JSON from AI response text, handling markdown code blocks.
+ */
+function parseJSON<T>(text: string): T {
+  const cleaned = text.replace(/```json|```/g, "").trim();
+  const jsonStart = cleaned.indexOf("{");
+  const jsonEnd = cleaned.lastIndexOf("}");
+  const arrayStart = cleaned.indexOf("[");
+  const arrayEnd = cleaned.lastIndexOf("]");
+
+  // Determine if it's an object or array
+  if (arrayStart !== -1 && (jsonStart === -1 || arrayStart < jsonStart)) {
+    return JSON.parse(cleaned.substring(arrayStart, arrayEnd + 1));
+  }
+  if (jsonStart !== -1 && jsonEnd !== -1) {
+    return JSON.parse(cleaned.substring(jsonStart, jsonEnd + 1));
+  }
+  return JSON.parse(cleaned);
+}
+
+// --- Exported AI Functions ---
 
 export interface TaskBreakdown {
   subtasks: { title: string; estimatedHours: number }[];
@@ -15,7 +95,10 @@ export interface TaskBreakdown {
   estimatedTotalHours: number;
 }
 
-export async function breakdownTaskDescription(description: string, title: string): Promise<TaskBreakdown> {
+export async function breakdownTaskDescription(
+  description: string,
+  title: string
+): Promise<TaskBreakdown> {
   const prompt = `
     You are an expert Project Manager AI. I will provide a task title and description.
     Your job is to:
@@ -35,117 +118,108 @@ export async function breakdownTaskDescription(description: string, title: strin
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text().replace(/```json|```/g, "").trim();
-    return JSON.parse(text);
+    const text = await callAI(prompt);
+    return parseJSON<TaskBreakdown>(text);
   } catch (error) {
-    console.error("Gemini Breakdown Error:", error);
+    console.error("Gemini/Groq Breakdown Error:", error);
     return {
-        subtasks: [],
-        riskAnalysis: "AI breakdown failed. Please review manually.",
-        estimatedTotalHours: 0
+      subtasks: [],
+      riskAnalysis: "AI breakdown failed. Please review manually.",
+      estimatedTotalHours: 0,
     };
   }
 }
 
 export async function analyzeWorkloadRisk(
-    tasks: { title: string; dueDate: Date | null; status: string }[]
-): Promise<{ riskLevel: "low" | "medium" | "high" | "critical"; insight: string }> {
-    const prompt = `
-        Analyze the following user workload and determine the risk level (low, medium, high, critical) of missing deadlines or burnout.
-        Tasks: ${JSON.stringify(tasks)}
+  tasks: { title: string; dueDate: Date | null; status: string }[]
+): Promise<{
+  riskLevel: "low" | "medium" | "high" | "critical";
+  insight: string;
+}> {
+  const prompt = `
+    Analyze the following user workload and determine the risk level (low, medium, high, critical) of missing deadlines or burnout.
+    Tasks: ${JSON.stringify(tasks)}
 
-        Output JSON:
-        {
-            "riskLevel": "medium",
-            "insight": "Explain why..."
-        }
-    `;
-    
-     try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text().replace(/```json|```/g, "").trim();
-        return JSON.parse(text);
-    } catch (error) {
-        return { riskLevel: "low", insight: "AI analysis unavailable" };
+    Output JSON:
+    {
+      "riskLevel": "medium",
+      "insight": "Explain why..."
     }
+  `;
+
+  try {
+    const text = await callAI(prompt);
+    return parseJSON(text);
+  } catch (error) {
+    return { riskLevel: "low", insight: "AI analysis unavailable" };
+  }
 }
 
 export async function analyzeBatchTasksRisk(
-    tasksData: { id: string; title: string; dueDate: string; status: string }[]
+  tasksData: { id: string; title: string; dueDate: string; status: string }[]
 ): Promise<{ taskId: string; riskLevel: string; reason: string }[]> {
-    if (tasksData.length === 0) return [];
+  if (tasksData.length === 0) return [];
 
-    const prompt = `
-        You are a project risk analyzer. Review these tasks (Today is ${new Date().toISOString().split('T')[0]}):
-        ${JSON.stringify(tasksData)}
+  const prompt = `
+    You are a project risk analyzer. Review these tasks (Today is ${new Date().toISOString().split("T")[0]}):
+    ${JSON.stringify(tasksData)}
 
-        Identify tasks that are at "high" or "critical" risk of missing deadlines. 
-        Ignore tasks that are "done".
-        
-        Return a JSON array ONLY for risky tasks:
-        [
-            { "taskId": "...", "riskLevel": "high", "reason": "Deadline in 2 days but status is todo" }
-        ]
-        If no risky tasks, return [].
-    `;
+    Identify tasks that are at "high" or "critical" risk of missing deadlines.
+    Ignore tasks that are "done".
 
-    try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text().replace(/```json|```/g, "").trim();
-        const json = JSON.parse(text);
-        return Array.isArray(json) ? json : [];
-    } catch (error) {
-        console.error("Batch Risk Analysis Failed", error);
-        return [];
-    }
+    Return a JSON array ONLY for risky tasks:
+    [
+      { "taskId": "...", "riskLevel": "high", "reason": "Deadline in 2 days but status is todo" }
+    ]
+    If no risky tasks, return [].
+  `;
+
+  try {
+    const text = await callAI(prompt);
+    const json = parseJSON<any>(text);
+    return Array.isArray(json) ? json : [];
+  } catch (error) {
+    console.error("Batch Risk Analysis Failed", error);
+    return [];
+  }
 }
 
 export async function analyzeTaskQuality(
-    taskTitle: string,
-    taskDescription: string,
-    evidenceDescription: string,
-    isLate: boolean,
-    daysLate: number
+  taskTitle: string,
+  taskDescription: string,
+  evidenceDescription: string,
+  isLate: boolean,
+  daysLate: number
 ): Promise<{ score: number; analysis: string }> {
-    const prompt = `
-        You are a strict QA Manager. Evaluate the quality of this completed task.
-        
-        TASK: "${taskTitle}"
-        REQUIREMENTS: "${taskDescription}"
-        EVIDENCE SUBMITTED: "${evidenceDescription}"
-        TIMELINESS: ${isLate ? `Late by ${daysLate} days` : "On Time"}
+  const prompt = `
+    You are a strict QA Manager. Evaluate the quality of this completed task.
 
-        Rate the quality on a scale of 0-100 based on:
-        1. Alignment with requirements (Did they do what was asked?).
-        2. Clarity of evidence provided.
-        3. Timeliness (Penalize heavily if late).
+    TASK: "${taskTitle}"
+    REQUIREMENTS: "${taskDescription}"
+    EVIDENCE SUBMITTED: "${evidenceDescription}"
+    TIMELINESS: ${isLate ? `Late by ${daysLate} days` : "On Time"}
 
-        Return JSON ONLY:
-        {
-            "score": 85,
-            "analysis": "Good work, met all requirements. Evidence is clear. Perfect timing."
-        }
-    `;
+    Rate the quality on a scale of 0-100 based on:
+    1. Alignment with requirements (Did they do what was asked?).
+    2. Clarity of evidence provided.
+    3. Timeliness (Penalize heavily if late).
 
-    try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        // Clean text to ensure valid JSON
-        const text = response.text().replace(/```json|```/g, "").trim();
-        // Sometimes the model adds extra text, try to extract JSON
-        const jsonStart = text.indexOf('{');
-        const jsonEnd = text.lastIndexOf('}');
-        if (jsonStart !== -1 && jsonEnd !== -1) {
-             return JSON.parse(text.substring(jsonStart, jsonEnd + 1));
-        }
-        return JSON.parse(text);
-    } catch (error) {
-        console.error("Quality Analysis Failed", error);
-        // Return default values so the UI doesn't crash
-        return { score: 70, analysis: "AI Analysis unavailable currently. Please review manually." };
+    Return JSON ONLY:
+    {
+      "score": 85,
+      "analysis": "Good work, met all requirements. Evidence is clear. Perfect timing."
     }
+  `;
+
+  try {
+    const text = await callAI(prompt);
+    return parseJSON(text);
+  } catch (error) {
+    console.error("Quality Analysis Failed", error);
+    return {
+      score: 70,
+      analysis:
+        "AI Analysis unavailable currently. Please review manually.",
+    };
+  }
 }

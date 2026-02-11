@@ -48,6 +48,15 @@ interface ApiUser {
   status?: string;
 }
 
+interface ApiTask {
+  id: string;
+  title: string;
+  status: string;
+  assigneeId: string | null;
+  qualityScore: number | null;
+  priority: string;
+}
+
 interface Performer {
   id: string;
   name: string;
@@ -153,14 +162,16 @@ export default function TalentIntelligencePage() {
         setLoading(true);
 
         // Fetch all data in parallel
-        const [usersRes, hrStatsRes, analyticsRes] = await Promise.all([
+        const [usersRes, hrStatsRes, analyticsRes, tasksRes] = await Promise.all([
           fetch("/api/users"),
           fetch("/api/dashboard/hr/stats"),
           fetch("/api/analytics"),
+          fetch("/api/tasks"),
         ]);
 
         let users: ApiUser[] = [];
         let workloadData: WorkloadEmployee[] = [];
+        let allTasks: ApiTask[] = [];
 
         // Process Users
         if (usersRes.ok) {
@@ -182,23 +193,34 @@ export default function TalentIntelligencePage() {
           workloadData = analyticsData.workload || [];
         }
 
+        // Process Tasks
+        if (tasksRes.ok) {
+          allTasks = await tasksRes.json();
+        }
+
         // Calculate Top Performers from users with analytics data
         const activeEmployees = users.filter(
           (u: ApiUser) =>
             (u.role === "employee" || u.role === "pm") && u.status === "active"
         );
 
-        // Merge user data with workload data
-        const performersData = activeEmployees.slice(0, 6).map((u: ApiUser) => {
+        // Merge user data with workload data and real task metrics
+        const performersData = activeEmployees.map((u: ApiUser) => {
           const workload = workloadData.find(
             (w: WorkloadEmployee) => w.userId === u.id
           );
-          // Generate realistic performance metrics based on workload
 
-          // Use default values since we don't have real performance data yet
-          const completionRate = 0;
-          const qualityBase = 0;
+          // Calculate real metrics from task data
+          const userTasks = allTasks.filter((t: ApiTask) => t.assigneeId === u.id);
+          const totalTasks = userTasks.length;
+          const doneTasks = userTasks.filter((t: ApiTask) => t.status === "done").length;
+          const completionRate = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
+          // Calculate quality score from tasks with quality scores
+          const tasksWithQuality = userTasks.filter((t: ApiTask) => t.qualityScore !== null && t.qualityScore !== undefined);
+          const avgQuality = tasksWithQuality.length > 0
+            ? tasksWithQuality.reduce((sum: number, t: ApiTask) => sum + (t.qualityScore || 0), 0) / tasksWithQuality.length
+            : 0;
 
           return {
             id: u.id,
@@ -207,7 +229,7 @@ export default function TalentIntelligencePage() {
             department: u.department || "General",
             image: u.image,
             completionRate,
-            qualityScore: qualityBase.toFixed(1),
+            qualityScore: avgQuality.toFixed(1),
             activeTaskCount: workload?.activeTaskCount || 0,
           };
         });

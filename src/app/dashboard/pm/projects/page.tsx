@@ -79,9 +79,9 @@ export default function ProjectsPage() {
               <div className="flex justify-between items-start">
                 <Badge
                   variant={
-                    project.status === "Active" ? "default" : "secondary"
+                    project.status === "active" ? "default" : "secondary"
                   }
-                  className="mb-2"
+                  className="mb-2 capitalize"
                 >
                   {project.status}
                 </Badge>
