@@ -31,9 +31,7 @@ interface SessionUser {
 }
 
 const menuItems = [
-    { name: 'Features', href: '#features' },
-    { name: 'Solution', href: '#solution' },
-    { name: 'Pricing', href: '#pricing' },
+    { name: 'Fitur', href: '#features' },
     { name: 'FAQ', href: '#faq' },
 ]
 
@@ -99,7 +97,7 @@ export const HeroHeader = () => {
                                 href="/"
                                 aria-label="home"
                                 className="flex items-center space-x-2">
-                                <Logo />
+                                <span className="text-xl font-bold tracking-tight">QUAVITY</span>
                             </Link>
 
                             <button

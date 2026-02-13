@@ -1,6 +1,6 @@
 # Inovasi, Keunikan, dan Orisinalitas Proyek
 
-## Execution-based Performance & Workload Intelligence Platform (Biznovation)
+## Execution-based Performance & Workload Intelligence Platform (Quavity)
 
 ---
 
@@ -72,7 +72,7 @@ Sistem ini bukan hanya untuk PM memantau proyek, tapi juga **Dashboard HR** untu
 
 Perbedaan mendasar dengan sistem serupa di pasar saat ini:
 
-| Fitur | Jira / Trello / Asana | HRIS (Workday/Talenta) | **Biznovation (Proyek Ini)** |
+| Fitur | Jira / Trello / Asana | HRIS (Workday/Talenta) | **Quavity (Proyek Ini)** |
 | :--- | :--- | :--- | :--- |
 | **Penyelesaian Tugas** | Klik Centang (Trust-based) | N/A | **Evidence Upload (Proof-based)** |
 | **Penilaian Kualitas** | Manual oleh Manager | KPI Tahunan (Manual) | **AI Quality Auditor (Indikator Awal)** |
@@ -102,4 +102,4 @@ Sistem ini telah siap digunakan (Production Ready) dengan fitur:
 
 ## 🔚 Kesimpulan
 
-Biznovation bukan lagi sekadar ide. Ini adalah **Platform Inteligensi Kerja** yang berfungsi penuh, siap memecahkan masalah klasik "Subjektivitas Penilaian" di perusahaan modern.
+Quavity bukan lagi sekadar ide. Ini adalah **Platform Inteligensi Kerja** yang berfungsi penuh, siap memecahkan masalah klasik "Subjektivitas Penilaian" di perusahaan modern.

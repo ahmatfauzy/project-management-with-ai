@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { LogoIcon } from "@/components/logo";
 
 // Wrapper for individual icons to give them the glassy container style and hover effects
 const IconWrapper = ({
@@ -19,7 +20,7 @@ const IconWrapper = ({
 }) => (
   <div
     className={`
-        backdrop-blur-xl rounded-2xl flex items-center justify-center transition-all duration-300
+        backdrop-blur-xl rounded-full flex items-center justify-center transition-all duration-300
         ${
           isHighlighted
             ? "dark:bg-gray-700/50 bg-gray-100/80 border border-blue-400/50 dark:shadow-blue-500/20 shadow-blue-400/30 shadow-2xl animate-breathing-glow"
@@ -43,11 +44,11 @@ const IconGrid = () => {
   const [hoveredId, setHoveredId] = useState<number | null>(null);
 
   const outerIcons = [
-    { id: 1, src: "/icons/asana-logo.svg", alt: "Asana" },
-    { id: 2, src: "/icons/clickup-logo.svg", alt: "ClickUp" },
-    { id: 3, src: "/icons/jira-logo.svg", alt: "Jira" },
-    { id: 4, src: "/icons/notion-logo.svg", alt: "Notion" },
-    { id: 5, src: "/icons/trello-logo.svg", alt: "Trello" },
+    { id: 1, label: "AI Audit" },
+    { id: 2, label: "Real-time" },
+    { id: 3, label: "Secure" },
+    { id: 4, label: "Analytics" },
+    { id: 5, label: "Workflow" },
   ];
 
   // Constants for layout calculation
@@ -151,17 +152,11 @@ const IconGrid = () => {
         {/* Center Icon */}
         <div className="absolute -translate-x-1/2 -translate-y-1/2 z-10">
           <IconWrapper
-            className="w-24 h-24 p-4"
+            className="w-24 h-24 p-2"
             isHighlighted={true}
             animationDelay={0}
           >
-            <Image
-              src="/next.svg"
-              alt="Center Logo"
-              width={60}
-              height={60}
-              className="dark:invert w-full h-full object-contain"
-            />
+           <span className="font-bold text-center text-sm md:text-base leading-tight">QUAVITY<br/>CORE</span>
           </IconWrapper>
         </div>
 
@@ -186,17 +181,11 @@ const IconGrid = () => {
             >
               <div className="-translate-x-1/2 -translate-y-1/2">
                 <IconWrapper
-                  className="w-20 h-20 p-4"
+                  className="w-20 h-20 p-2"
                   isHovered={hoveredId === icon.id}
                   animationDelay={i * 0.2}
                 >
-                  <Image
-                    src={icon.src}
-                    alt={icon.alt}
-                    width={40}
-                    height={40}
-                    className="w-full h-full object-contain"
-                  />
+                  <span className="font-semibold text-xs md:text-sm text-center">{icon.label}</span>
                 </IconWrapper>
               </div>
             </div>

@@ -29,9 +29,9 @@ export default function HeroSection() {
                   preset="fade-in-blur"
                   speedSegment={0.3}
                   as="h1"
-                  className="mt-8 max-w-3xl text-balance text-5xl font-medium md:text-6xl lg:mt-16 tracking-tight text-white"
+                  className="mt-8 max-w-3xl text-balance text-5xl font-medium md:text-6xl lg:mt-16 tracking-tight text-white ps-0"
                 >
-                  Workload Intelligence Platform
+                  Platform Manajemen Beban Kerja Cerdas
                 </TextEffect>
                 <TextEffect
                   per="line"
@@ -41,8 +41,8 @@ export default function HeroSection() {
                   as="p"
                   className="mt-8 max-w-2xl text-pretty text-lg text-zinc-400"
                 >
-                  Stop guessing. Start measuring. Assess performance objectively
-                  based on real execution data, powered by AI.
+                  Berhenti menebak. Mulai mengukur. Nilai performa tim secara objektif
+                  berdasarkan data eksekusi nyata, ditenagai oleh AI.
                 </TextEffect>
 
                 <AnimatedGroup
@@ -73,7 +73,7 @@ export default function HeroSection() {
                       },
                     },
                   }}
-                  className="mt-12 flex items-center gap-4"
+                  className="mt-12 flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start"
                 >
                   <div
                     key={1}
@@ -84,14 +84,14 @@ export default function HeroSection() {
                       size="lg"
                       className="rounded-xl px-6 text-base bg-white text-black hover:bg-zinc-200"
                     >
-                      <Link href="/auth/login">
+                      <Link href="/dashboard">
                         <span className="text-nowrap font-medium">
-                          Get Started
+                          Mulai Sekarang
                         </span>
                       </Link>
                     </Button>
                   </div>
-                  <Button
+                  {/* <Button
                     key={2}
                     asChild
                     size="lg"
@@ -101,7 +101,7 @@ export default function HeroSection() {
                     <Link href="#">
                       <span className="text-nowrap">Live Demo</span>
                     </Link>
-                  </Button>
+                  </Button> */}
                 </AnimatedGroup>
               </div>
             </div>

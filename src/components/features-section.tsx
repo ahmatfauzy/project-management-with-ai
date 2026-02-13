@@ -4,18 +4,18 @@ import IconGrid from "./differentSection";
 
 export default function FeaturesSection() {
   return (
-    <section className=" py-16 md:py-32">
+    <section id="features" className=" py-16 md:py-32">
       <div className="mx-auto max-w-7xl px-6">
         <div className="mx-auto max-w-2xl text-center mb-16">
           <h2 className="text-base font-semibold leading-7 text-blue-600 dark:text-blue-500">
-            Why Choose Quavity?
+            Mengapa Memilih Quavity?
           </h2>
           <p className="mt-2 text-3xl font-bold tracking-tight dark:text-white sm:text-4xl">
-            Supercharge Your Efficiency
+            Tingkatkan Efisiensi Tim Anda
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
-            Powerful features powered by AI to help your team ship projects
-            faster and smarter.
+            Fitur canggih bertenaga AI untuk membantu tim Anda menyelesaikan proyek
+            lebih cepat dan lebih cerdas.
           </p>
         </div>
         <div className="relative">
@@ -39,7 +39,7 @@ export default function FeaturesSection() {
                   </span>
                 </div>
                 <h2 className="mt-6 text-center text-3xl font-semibold">
-                  Customizable
+                  Transparansi
                 </h2>
               </CardContent>
             </Card>
@@ -56,11 +56,11 @@ export default function FeaturesSection() {
                   </div>
                   <div className="space-y-2">
                     <h2 className="group-hover:text-secondary-950 text-lg font-medium text-zinc-800 transition dark:text-white">
-                      Faster than light
+                      Aman & Terpercaya
                     </h2>
                     <p className="text-foreground">
-                      Provident fugit vero voluptate. Voluptates a sapiente
-                      inventore nisi.
+                      Data proyek Anda dilindungi dengan standar keamanan tertinggi
+                      dan audit berkala.
                     </p>
                   </div>
                 </div>
@@ -121,11 +121,11 @@ export default function FeaturesSection() {
                   </div>
                   <div className="space-y-2">
                     <h2 className="text-lg font-medium transition">
-                      Real-time Collaboration
+                      Kolaborasi Real-time
                     </h2>
                     <p className="text-foreground">
-                      Stay connected with your team. Track progress, share
-                      updates, and resolve issues instantly.
+                      Tetap terhubung dengan tim. Lacak progres, bagikan
+                      pembaruan, dan selesaikan masalah secara instan.
                     </p>
                   </div>
                 </div>
@@ -133,7 +133,7 @@ export default function FeaturesSection() {
                   <div className="relative flex h-full flex-col justify-center space-y-6 py-6">
                     <div className="relative flex w-[calc(50%+0.875rem)] items-center justify-end gap-2">
                       <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">
-                        Likeur
+                        Budi
                       </span>
                       <div className="ring-background size-7 ring-4">
                         <img
@@ -152,12 +152,12 @@ export default function FeaturesSection() {
                         />
                       </div>
                       <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">
-                        M. Irung
+                        Siti
                       </span>
                     </div>
                     <div className="relative flex w-[calc(50%+0.875rem)] items-center justify-end gap-2">
                       <span className="block h-fit rounded border px-2 py-1 text-xs shadow-sm">
-                        B. Ng
+                        Andi
                       </span>
                       <div className="ring-background size-7 ring-4">
                         <img

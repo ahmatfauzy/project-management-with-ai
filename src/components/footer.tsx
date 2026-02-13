@@ -3,88 +3,27 @@ import Link from "next/link";
 
 const links = [
   {
-    group: "Product",
+    group: "Produk",
     items: [
       {
-        title: "Features",
-        href: "#",
+        title: "Fitur",
+        href: "#features",
       },
       {
-        title: "Solution",
-        href: "#",
-      },
-      {
-        title: "Pricing",
-        href: "#",
-      },
-      {
-        title: "Help",
-        href: "#",
-      },
-      {
-        title: "About",
-        href: "#",
+        title: "FAQ",
+        href: "#faq",
       },
     ],
   },
   {
-    group: "Solution",
+    group: "Perusahaan",
     items: [
       {
-        title: "Startup",
+        title: "Tentang",
         href: "#",
       },
       {
-        title: "Freelancers",
-        href: "#",
-      },
-      {
-        title: "Organizations",
-        href: "#",
-      },
-      {
-        title: "Students",
-        href: "#",
-      },
-      {
-        title: "Collaboration",
-        href: "#",
-      },
-      {
-        title: "Design",
-        href: "#",
-      },
-      {
-        title: "Management",
-        href: "#",
-      },
-    ],
-  },
-  {
-    group: "Company",
-    items: [
-      {
-        title: "About",
-        href: "#",
-      },
-      {
-        title: "Careers",
-        href: "#",
-      },
-      {
-        title: "Blog",
-        href: "#",
-      },
-      {
-        title: "Press",
-        href: "#",
-      },
-      {
-        title: "Contact",
-        href: "#",
-      },
-      {
-        title: "Help",
+        title: "Kontak",
         href: "#",
       },
     ],
@@ -93,19 +32,11 @@ const links = [
     group: "Legal",
     items: [
       {
-        title: "Licence",
+        title: "Privasi",
         href: "#",
       },
       {
-        title: "Privacy",
-        href: "#",
-      },
-      {
-        title: "Cookies",
-        href: "#",
-      },
-      {
-        title: "Security",
+        title: "Ketentuan",
         href: "#",
       },
     ],
@@ -119,7 +50,7 @@ export default function FooterSection() {
         <div className="grid gap-12 md:grid-cols-5">
           <div className="md:col-span-2">
             <Link href="/" aria-label="go home" className="block size-fit">
-              <Logo />
+              <span className="text-xl font-bold tracking-tight">QUAVITY</span>
             </Link>
           </div>
 

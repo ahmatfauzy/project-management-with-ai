@@ -22,14 +22,14 @@ export default function FAQsThree() {
       id: "item-1",
       icon: "trophy",
       question:
-        "Apa perbedaan utama Biznovation dengan Jira, Trello, atau Asana?",
+        "Apa perbedaan utama Quavity dengan Jira, Trello, atau Asana?",
       answer:
-        "Biznovation tidak hanya mencatat status tugas, tetapi menilai kualitas eksekusi kerja melalui bukti nyata dan audit AI, sehingga performa dapat dievaluasi secara objektif.",
+        "Quavity tidak hanya mencatat status tugas, tetapi menilai kualitas eksekusi kerja melalui bukti nyata dan audit AI, sehingga performa dapat dievaluasi secara objektif.",
     },
     {
       id: "item-2",
       icon: "credit-card",
-      question: "Apakah AI di Biznovation menggantikan peran manajer?",
+      question: "Apakah AI di Quavity menggantikan peran manajer?",
       answer:
         "Tidak. AI berfungsi sebagai asisten dan auditor awal, bukan pengambil keputusan. Keputusan akhir tetap di tangan Project Manager atau HR.",
     },
@@ -38,7 +38,7 @@ export default function FAQsThree() {
       icon: "atom",
       question: "Apakah sistem ini memantau karyawan secara berlebihan?",
       answer:
-        "Tidak. Biznovation dirancang untuk mendukung produktivitas, bukan pengawasan. Data yang dikumpulkan hanya terkait eksekusi tugas yang memang relevan dengan pekerjaan.",
+        "Tidak. Quavity dirancang untuk mendukung produktivitas, bukan pengawasan. Data yang dikumpulkan hanya terkait eksekusi tugas yang memang relevan dengan pekerjaan.",
     },
     {
       id: "item-4",
@@ -57,21 +57,21 @@ export default function FAQsThree() {
   ];
 
   return (
-    <section className="py-16 md:py-32">
+    <section id="faq" className="py-16 md:py-32">
       <div className="mx-auto max-w-5xl px-4 md:px-6">
         <div className="flex flex-col gap-10 md:flex-row md:gap-16">
           <div className="md:w-1/3">
             <div className="sticky top-20">
               <h2 className="mt-4 text-3xl font-bold">
-                Frequently Asked Questions
+                Pertanyaan yang Sering Diajukan
               </h2>
               <p className="text-muted-foreground mt-4">
-                {`Can't find what you're looking for? Contact our{' '}`}
+                {`Tidak menemukan apa yang Anda cari? Hubungi `}
                 <Link
                   href="#"
                   className="text-primary font-medium hover:underline"
                 >
-                  customer support team
+                  tim dukungan kami
                 </Link>
               </p>
             </div>
